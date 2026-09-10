@@ -1,0 +1,53 @@
+name: CrustAPI
+description: >-
+  Hosted API delivering structured Google (Search/Maps/etc.) and public LinkedIn data as JSON for developers, data
+  teams, and AI agents. Pay-per-successful-result billing with an OpenAPI spec, an llms.txt, an x402 agent-payment
+  endpoint, and a local MCP server.
+url: https://raw.githubusercontent.com/api-evangelist/crustapi/refs/heads/main/apis.yml
+created: '2026-09-10'
+modified: '2026-09-10'
+specificationVersion: '0.21'
+tags:
+  - Search
+  - Google Maps
+  - LinkedIn
+  - SERP / Web Scraping
+  - Business & Lead Data
+  - People / Recruiting Data
+  - Data Enrichment
+  - AI Agents / MCP
+  - RAG
+  - Data
+apis:
+  - name: CrustAPI
+    description: >-
+      REST API for structured Google and public LinkedIn data, key-authenticated, with a published OpenAPI spec and an
+      x402 agent-payment endpoint. Includes bulk/batch LinkedIn processing with webhook delivery.
+    humanURL: https://crustapi.com/docs
+    baseURL: https://crustapi.com
+    tags:
+      - Search
+      - Google Maps
+      - LinkedIn
+      - SERP / Web Scraping
+      - Business & Lead Data
+      - People / Recruiting Data
+      - Data Enrichment
+      - AI Agents / MCP
+      - RAG
+      - Data
+    properties:
+      - type: OpenAPI
+        url: https://crustapi.com/v1/openapi.json
+      - type: Documentation
+        url: https://crustapi.com/docs
+      - type: LLMsTxt
+        url: https://crustapi.com/llms.txt
+maintainers:
+  - FN: CrustAPI
+    url: https://crustapi.com
+generated:
+  by: apis.io/add
+  model: claude-opus-4-8
+  confidence: 93
+  at: '2026-09-10T10:46:08.950Z'
