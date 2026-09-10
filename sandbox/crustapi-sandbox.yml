@@ -1,0 +1,24 @@
+generated: '2026-09-10'
+method: searched
+source: https://crustapi.com/v1/openapi.json + https://crustapi.com/llms.txt + https://crustapi.com/pricing
+api: CrustAPI
+note: >-
+  No separate test-vs-live key mode is published — all keys carry the key_live_ prefix.
+  Free evaluation is via a monthly free allowance and a no-key public demo endpoint.
+free_tier:
+  allowance_usd: 6
+  period: monthly
+  card_required: false
+public_demo:
+  endpoint: GET /v1/demo?type=<surface>&q=<query>
+  auth: none
+  rate_limited: true
+  note: OpenAPI security [] (no key); useful for a no-signup smoke test. Verified present in spec.
+playground:
+  location: dashboard (after signup)
+  note: Live playground with mini-batch — run up to 100 queries at once.
+test_key_prefixes:
+  live: key_live_
+  test: none-published
+test_fixtures: none-published
+time_simulation: none-published

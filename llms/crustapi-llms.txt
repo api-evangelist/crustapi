@@ -1,0 +1,174 @@
+# CrustAPI
+
+> Get LinkedIn and Google data in seconds. Pay only for results
+
+Find businesses, research people and companies, or bring search results into your app, spreadsheet or AI agent. Use the API or dashboard. Try for free. No credit card required. Site: https://crustapi.com · Docs: https://crustapi.com/docs · Pricing: https://crustapi.com/pricing
+
+## The promise
+
+Get the data you need through the API or dashboard. Start with the free allowance, then add funds when you need more usage. Purchased usage never expires. See https://crustapi.com/pricing for the free allowance and endpoint rates.
+
+## The problem it solves
+
+Getting data out of Google usually fails for one of three reasons:
+
+1. Scraping it yourself means proxies, CAPTCHAs, and parsers that silently break every time Google changes its markup. The data is free; your engineering time is not.
+2. Official APIs are expensive, rate-limited, and cover a fraction of what Google actually shows.
+3. A data pipeline needs clear costs and useful responses. CrustAPI does not charge for empty results, and purchased usage never expires.
+
+CrustAPI is the boring version that just works: a hosted API with one endpoint for the whole Google menu, billed only on success. When Google breaks something, that is our problem, not yours.
+
+## Who it's for
+
+- Developers who need live Google data in an app, a pipeline, or a product, without running scraping infrastructure.
+- Marketers and lead-gen teams who want business lists with phone numbers, websites, ratings, and review counts, as a table or CSV, no code required.
+- AI agents and assistants: a first-class MCP server, a CLI, an OpenAPI spec, and x402 payments so an agent can buy its own credits with no human in the loop.
+
+## The API
+
+One endpoint, one parameter picks the surface:
+
+```
+GET https://crustapi.com/v1/search?type=<surface>&q=<query>
+Header: x-api-key: key_live_xxxx
+```
+
+Surfaces (`type=`): `web`, `maps`, `places`, `news`, `shopping`, `images`, `videos`, `scholar`, `patents`, `autocomplete`, `webpage`, `reviews`, `lens`.
+
+`lens` is reverse image search: pass `url=<image url>` instead of `q` and get the pages where that image appears.
+
+Common parameters: `q` (query), `gl` (country, e.g. us), `hl` (language, e.g. en), `location` (for maps/places, e.g. "Miami, FL"), `limit` (maps only: businesses to return, default 20, max 100), `num` (reviews only: per page, max 50), `page`.
+
+The JSON shape is stable and matches the format most existing SERP integrations already parse, so switching is usually just a base-URL change. Machine-readable spec: https://crustapi.com/v1/openapi.json
+
+## Public LinkedIn data
+
+A second endpoint returns public LinkedIn data, the kind anyone can see without logging in, as structured JSON:
+
+```
+GET https://crustapi.com/v1/linkedin?type=<surface>&url=<profile-or-company-url>
+Header: x-api-key: key_live_xxxx
+```
+
+Surfaces (`type=`):
+
+- `profile`: a public person profile by URL. Name, headline, location, about, full work history, education, and skills.
+- `refresh`: a fast freshness check for a profile by URL. Returns name, current company and school (with numeric ids), and whether the profile is accessible. Built to keep a candidate or contact database current at scale, and not billed when the profile is not accessible.
+- `company`: a company page by URL. Name, industry, size, headquarters, website, founded, specialties, and similar companies.
+- `posts`: recent public posts for a profile or company.
+- `jobs`: a job posting by URL, or a job search. Title, company, location, salary when shown, posted date, and whether it is easy-apply.
+- `search` (alias `people`): people search. Pass `keywords` with a name (for example, "jane smith"), a `title=` profession (for example, `title=accountants`), or any combination of filters: `location` (any city, state, or country), `company`, `school`, `industry`, `companySize`, `pastCompany`, and follower/connection/experience-count ranges (`followersMin`/`followersMax`, `connectionsMin`/`connectionsMax`, `expCountMin`/`expCountMax`), plus `titleExclude`/`companyExclude`/`locationExclude` exclusions. Results carry location, current company, follower and connection counts, education, and past companies. Add `enrich=true` to return each person's full profile in the same call.
+
+Billing depends on the operation. Empty results are free. See https://crustapi.com/pricing and https://crustapi.com/docs for rates and request billing.
+
+Example:
+
+```
+curl "https://crustapi.com/v1/linkedin?type=profile&url=https://www.linkedin.com/in/williamhgates" \
+  -H "x-api-key: key_live_xxxx"
+```
+
+Example:
+
+```
+curl "https://crustapi.com/v1/search?type=web&q=best coffee in austin" \
+  -H "x-api-key: key_live_xxxx"
+```
+
+## Bulk lists and webhooks
+
+Send a whole list of LinkedIn URLs in one request instead of one at a time. Batch works for the
+`refresh`, `person` (a.k.a. `profile`), `company`, and `posts` types — use /in/ URLs for person,
+refresh and posts, and /company/ URLs for company:
+
+    POST https://crustapi.com/v1/linkedin/batch
+    body: {"type": "company", "urls": ["...", "..."]}
+
+Up to 100 URLs return in one round trip, results in the same order you sent them. Each row carries
+either data or its own error, so one dead row never fails the rest, and a transient block is retried
+automatically. Rows that come back not-accessible are free.
+
+For up to 10,000 URLs, add a "webhook" URL to the body. The API answers immediately with a jobId
+(HTTP 202), runs the batch in the background, and POSTs the full results to your webhook when done
+(the X-Crustapi-Job header carries the jobId). Check progress any time:
+
+    GET https://crustapi.com/v1/linkedin/batch?id=<jobId>
+
+The status call returns counts only. Results are delivered to your webhook and not retained.
+
+## Pricing and usage
+
+- The billing unit depends on the endpoint. Maps is billed per business returned. Check https://crustapi.com/pricing for each endpoint and https://crustapi.com/docs for response fields.
+- Empty or failed searches are free. You are never billed for a result you did not get.
+- Try for free. No credit card required. The current free allowance is shown at https://crustapi.com/pricing.
+- Purchased usage never expires.
+- Current rates and deposit options: https://crustapi.com/pricing. Check the dashboard for the billing model and allowance currently applied to your account.
+- Sign up at https://crustapi.com/signup. Keys, usage logs, a live playground with mini-batch (run up to 100 queries at once), and billing all live in the dashboard.
+
+## MCP server (for AI assistants)
+
+Give Claude Desktop, Cursor, Cline, or any MCP client live Google and public LinkedIn data. Package: `crustapi-mcp` on npm.
+
+```json
+{
+  "mcpServers": {
+    "crustapi": {
+      "command": "npx",
+      "args": ["-y", "crustapi-mcp"],
+      "env": { "CRUSTAPI_API_KEY": "key_live_xxxx" }
+    }
+  }
+}
+```
+
+Four tools: `search` (all Google surfaces behind one tool), `scrape_webpage` (any URL as clean text for RAG), `get_reviews` (Google reviews for a business), and `linkedin` (public LinkedIn profiles, companies, posts, jobs, and people search behind one tool).
+
+## Integrations
+
+CrustAPI is one HTTP endpoint, so it drops into any tool that can call a URL. Setup for the common ones is at https://crustapi.com/docs#integrations.
+
+- Clay: add an HTTP API enrichment column pointing at `/v1/search` with your key in `x-api-key`, then map fields like website, phone, and reviewsCount into your table.
+- n8n, Make, Zapier, Retool: a GET request to `/v1/search` returns clean JSON to map to fields; no SDK needed.
+- AI agent frameworks: use the HTTP API, the LangChain package, or the MCP server through a compatible client. Setup requirements depend on the framework.
+
+## CLI
+
+```
+npm install -g crustapi-cli
+export CRUSTAPI_API_KEY=key_live_xxxx
+crust "dentists in miami"
+crust search coffee --type maps --location "Austin, TX" --limit 20
+crust search plumbers --type maps --csv > leads.csv
+crust linkedin https://www.linkedin.com/in/williamhgates
+crust linkedin "head of growth fintech" --enrich
+```
+
+JSON to stdout (pipes cleanly to jq), status line to stderr, `--csv` for CSV.
+
+## Agent payments (x402)
+
+An AI agent can buy its own credits with no signup, card, or human. CrustAPI implements the x402 protocol on Base (USDC, gasless EIP-3009):
+
+1. Agent calls `POST https://crustapi.com/v1/x402/topup?pack=agent` with no key.
+2. Server replies `402 Payment Required` with x402 v2 requirements (network eip155:8453, USDC).
+3. Agent's wallet signs a gasless USDC authorization and retries.
+4. Server settles on-chain and returns `{ apiKey, credits }`, a real key loaded with credits. The `agent` pack is $5 for 2,500 credits.
+
+## What makes it different
+
+- You only pay for results that come back. Empty searches are free, always.
+- Purchased credits never expire.
+- The whole Google menu behind one endpoint and one schema, not a separate product per surface.
+- Image search can return multiple images in one response; availability depends on the query.
+- Built for both halves of a team: an API and CLI for developers, and a dashboard where a non-developer can type a query, get a table, and download the CSV.
+- Agent-native from day one: MCP server, OpenAPI spec, and x402 so software can discover, call, and pay for it on its own.
+
+## What it is not
+
+- Not a proxy provider or a scraping framework you host. There is nothing to run, patch, or maintain.
+- Not a subscription. There is no monthly fee; you top up credits when you need them.
+- Public data from the supported sources. Identical live-read requests may reuse a result for up to 60 seconds; use `fresh=1` to request a new fetch. People and Jobs search use periodically updated indexes. A source timestamp or index snapshot does not guarantee every field is current.
+
+## Support
+
+Email support@crustapi.com and a human answers. Legal: https://crustapi.com/terms · https://crustapi.com/privacy

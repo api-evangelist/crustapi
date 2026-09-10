@@ -1,0 +1,57 @@
+generated: '2026-09-10'
+method: derived
+source: >-
+  Derived from the component schemas ($ref graph) in
+  https://crustapi.com/v1/openapi.json.
+api: CrustAPI
+entities:
+- name: SearchResult
+  role: root response for GET /v1/search (serper-compatible envelope; per-surface arrays)
+- name: OrganicResult
+- name: Place
+- name: NewsItem
+- name: ShoppingItem
+- name: ImageItem
+- name: VideoItem
+- name: Review
+- name: Suggestion
+- name: LinkedInResult
+  role: root response for GET /v1/linkedin (profile/company/posts/jobs/people sub-objects)
+relationships:
+- from: SearchResult
+  to: OrganicResult
+  type: has_many
+  via: organic[]
+- from: SearchResult
+  to: Place
+  type: has_many
+  via: places[]
+- from: SearchResult
+  to: NewsItem
+  type: has_many
+  via: news[]
+- from: SearchResult
+  to: ShoppingItem
+  type: has_many
+  via: shopping[]
+- from: SearchResult
+  to: ImageItem
+  type: has_many
+  via: images[]
+- from: SearchResult
+  to: VideoItem
+  type: has_many
+  via: videos[]
+- from: SearchResult
+  to: Review
+  type: has_many
+  via: reviews[]
+- from: SearchResult
+  to: Suggestion
+  type: has_many
+  via: suggestions[]
+note: >-
+  LinkedInResult holds free-form profile/company/posts/jobs/people sub-objects (not modeled
+  as separate components in the spec) plus creditsRemaining/tookMs metadata. No id-prefix
+  scheme is documented; entities are joined structurally under the search envelope, not by
+  cross-referencing ids.

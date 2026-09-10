@@ -1,0 +1,57 @@
+generated: '2026-09-10'
+method: searched
+source: https://crustapi.com/pricing
+api: CrustAPI
+model: pay-as-you-go
+billing: prepaid-credits
+currency: USD
+note: >-
+  No subscription tiers or feature gates. Usage is billed against a prepaid credit balance;
+  purchased funds never expire; free monthly allowance resets monthly. Billed only on
+  successful results — empty results, private profiles and deleted pages are free.
+free_allowance:
+  amount_usd: 6
+  period: monthly
+  card_required: false
+  note: '"$6 of free usage every month"; free credits reset monthly.'
+refund:
+  policy: Full refund within 7 days of first payment if less than 20% used.
+  source: https://crustapi.com/pricing
+deposit_packs_usd:
+- 49
+- 149
+- 549
+- 1999
+- 6500
+- 27500
+- 50000
+- 100000
+minimum_deposit_usd: 10
+note_volume: Larger deposits unlock lower per-request prices for those funds only.
+rates:
+- service: Google Search
+  price_usd: 1.00
+  unit: per 1,000 successful requests
+- service: Google Maps
+  price_usd: 1.96
+  unit: per 1,000 businesses returned
+- service: LinkedIn Person, Company & Posts
+  price_usd: 6.00
+  unit: per 1,000 successful requests
+- service: LinkedIn People, Jobs & Refresh
+  price_usd: 1.96
+  unit: per 1,000 billing units
+- service: Work Email Lookup
+  price_usd: 0
+  unit: included
+- service: x402 agent pack
+  price_usd: 5
+  unit: 2,500 credits (agent self-purchase, no signup)
+  source: live 402 challenge at /v1/x402/topup?pack=agent
+plan_count: 1
+plans:
+- name: Pay-as-you-go
+  price: usage-based
+  billing_period: none (prepaid credits, never expire)
+  free_allowance: $6/month
+  note: The only plan; volume discounts apply per deposit size.

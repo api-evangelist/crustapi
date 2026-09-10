@@ -1,0 +1,61 @@
+generated: '2026-09-10'
+method: probed
+source: >-
+  Live probe of https://crustapi.com/v1/x402/topup (anonymous POST returned a genuine
+  402 x402 v2 challenge), the published OpenAPI at https://crustapi.com/v1/openapi.json,
+  and the docs/llms.txt.
+api: CrustAPI
+standards:
+- id: x402
+  name: x402 agent-payment protocol (v2)
+  conforms: true
+  evidence: >-
+    POST https://crustapi.com/v1/x402/topup?pack=agent returns HTTP 402 with
+    {"x402Version":2, accepts:[{scheme:"exact", network:"eip155:8453",
+    asset:"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" (USDC on Base),
+    extra:{assetTransferMethod:"eip3009"}}]} and an x402 block naming the CDP facilitator
+    https://api.cdp.coinbase.com/platform/v2/x402 (cdp-jwt). Verified live 2026-09-10.
+- id: eip-3009
+  name: EIP-3009 (transferWithAuthorization, gasless USDC)
+  conforms: true
+  evidence: >-
+    x402 challenge declares extra.assetTransferMethod "eip3009" for the USDC authorization.
+- id: serper-compatible-shape
+  name: Serper-compatible SERP JSON shape
+  conforms: true
+  evidence: >-
+    OpenAPI info.description and llms.txt state the /v1/search response matches the
+    serper.dev SERP shape so existing integrations switch by base-URL change only. Vendor
+    self-declared interoperability convention, not a formal registry standard.
+- id: rfc9457
+  name: RFC 9457 problem+json error format
+  conforms: false
+  evidence: >-
+    OpenAPI 4xx/5xx responses carry only a description string; no application/problem+json
+    media type or Problem schema is declared, and the docs do not document one.
+- id: oauth2
+  name: OAuth 2.0
+  conforms: false
+  evidence: >-
+    Sole security scheme is apiKey in header (x-api-key, key_live_ prefix). No OAuth2 or
+    OIDC securityScheme; /.well-known/oauth-authorization-server and openid-configuration
+    both 404.
+- id: pagination
+  name: Documented pagination
+  conforms: true
+  evidence: >-
+    Docs document page/num/limit with per-endpoint defaults and caps (maps limit default
+    20 max 100; reviews num default 20 max 50; jobs 25/100; posts 50/100; people 10/50).
+- id: idempotency
+  name: Idempotency / replay protection
+  conforms: false
+  evidence: >-
+    No Idempotency-Key header or replay protection documented; core surface is read-only
+    data retrieval.
+domain_standard:
+  id: x402
+  present: true
+  evidence: >-
+    Live 402 x402 v2 payment-required challenge at /v1/x402/topup with USDC-on-Base
+    settlement via the Coinbase CDP facilitator; this is the agent-native payment standard
+    for CrustAPI's market and is served by the provider's own host.

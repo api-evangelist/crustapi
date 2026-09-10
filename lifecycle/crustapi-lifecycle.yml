@@ -1,0 +1,25 @@
+generated: '2026-09-10'
+method: searched
+source: >-
+  https://crustapi.com/docs, https://crustapi.com/v1/openapi.json, and live probe of
+  https://status.crustapi.com/ (200, title "crustapi - status").
+api: CrustAPI
+versioning:
+  style: uri-path
+  current_path: v1
+  spec_version: 2.0.0
+  note: Endpoints under /v1; OpenAPI info.version is 2.0.0.
+deprecation:
+  policy: none-documented
+  sunset_header: not-documented
+  deprecated_operations: []
+  note: No published deprecation/Sunset policy; no operation flagged deprecated in the OpenAPI.
+status_page:
+  url: https://status.crustapi.com/
+  verified: '2026-09-10'
+  http_status: 200
+sla:
+  published: false
+  note: No SLA published; free monthly allowance and pay-as-you-go credits, no uptime commitment stated.
+support:
+  email: support@crustapi.com

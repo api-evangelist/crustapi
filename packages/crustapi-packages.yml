@@ -1,0 +1,55 @@
+generated: '2026-09-10'
+method: searched
+source: >-
+  npm registry.npmjs.org, pypi.org, and the CrustAPI GitHub org
+  (https://github.com/CrustAPI). Versions and dates read from registry metadata 2026-09-10.
+api: CrustAPI
+packages:
+- name: crustapi-mcp
+  registry: npm
+  official: true
+  language: JavaScript
+  version: 0.3.1
+  published: '2026-07-15'
+  url: https://www.npmjs.com/package/crustapi-mcp
+  repo: https://github.com/CrustAPI/crustapi-mcp
+  role: mcp-server
+  install: npx -y crustapi-mcp
+  note: >-
+    First-party local (stdio) MCP server. Four tools: search, scrape_webpage,
+    get_reviews, linkedin. Needs CRUSTAPI_API_KEY.
+- name: crustapi-cli
+  registry: npm
+  official: true
+  language: JavaScript
+  version: 0.2.0
+  published: '2026-07-15'
+  url: https://www.npmjs.com/package/crustapi-cli
+  role: cli
+  install: npm install -g crustapi-cli
+  note: First-party CLI (binary `crust`). Google + LinkedIn data from the terminal, --csv output.
+- name: langchain-crustapi
+  registry: pypi
+  official: true
+  language: Python
+  version: 0.2.0
+  published: '2026-07-15'
+  url: https://pypi.org/project/langchain-crustapi/
+  repo: https://github.com/crustapi/langchain-crustapi
+  role: sdk
+  note: First-party LangChain integration exposing CrustAPI search/LinkedIn as agent tools.
+- name: n8n-nodes-crustapi
+  registry: npm
+  official: true
+  language: TypeScript
+  version: 0.2.0
+  published: '2026-07-15'
+  url: https://www.npmjs.com/package/n8n-nodes-crustapi
+  repo: https://github.com/CrustAPI/n8n-nodes-crustapi
+  role: integration-node
+  note: First-party n8n community node for CrustAPI Google + LinkedIn data.
+notes: >-
+  No first-party SDK published for JS/Go/Ruby/Java/.NET beyond the CLI and LangChain
+  integration; the docs position the API as one HTTP endpoint that drops into any HTTP
+  client. All four first-party packages were published 2026-07-15, consistent with the
+  OpenAPI info.version 2.0.0 surface; none predates the API.

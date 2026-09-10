@@ -1,0 +1,37 @@
+generated: '2026-09-10'
+method: searched
+source: >-
+  npm crustapi-mcp (registry metadata + repo https://github.com/CrustAPI/crustapi-mcp),
+  and the MCP configuration block published in https://crustapi.com/llms.txt.
+api: CrustAPI
+name: crustapi
+description: >-
+  First-party MCP server giving MCP clients (Claude Desktop, Cursor, Cline, etc.) live
+  Google (Search/Maps/News/Images/Reviews/webpage) and public LinkedIn data. Distributed
+  as an npm package run locally over stdio; no hosted/remote MCP endpoint is published.
+deployment:
+  mode: local-stdio
+  install: npx -y crustapi-mcp
+  package: https://www.npmjs.com/package/crustapi-mcp
+  auth: api-key
+  verified: searched
+  note: >-
+    env CRUSTAPI_API_KEY (key_live_ prefix) required. No remote https MCP endpoint exists;
+    the provider ships only the stdio package, so an agent needs a human to install and run
+    it first. Agent-native billing is instead reachable directly via the x402 top-up
+    endpoint (see conformance) plus the REST API.
+version: 0.3.1
+published: '2026-07-15'
+tools:
+- name: search
+  description: All Google surfaces behind one tool (web, maps, places, news, shopping, images, videos, scholar, patents, autocomplete, lens).
+  backs: GET /v1/search
+- name: scrape_webpage
+  description: Fetch any URL as clean text/markdown for RAG.
+  backs: GET /v1/search (type=webpage)
+- name: get_reviews
+  description: Google reviews for a business.
+  backs: GET /v1/search (type=reviews)
+- name: linkedin
+  description: Public LinkedIn profiles, companies, posts, jobs, and people search behind one tool.
+  backs: GET /v1/linkedin

@@ -1,13 +1,31 @@
 name: CrustAPI
-description: >-
-  Hosted API delivering structured Google (Search/Maps/etc.) and public LinkedIn data as JSON for developers, data
-  teams, and AI agents. Pay-per-successful-result billing with an OpenAPI spec, an llms.txt, an x402 agent-payment
+description: Hosted API delivering structured Google (Search/Maps/etc.) and public LinkedIn data as JSON for developers,
+  data teams, and AI agents. Pay-per-successful-result billing with an OpenAPI spec, an llms.txt, an x402 agent-payment
   endpoint, and a local MCP server.
 url: https://raw.githubusercontent.com/api-evangelist/crustapi/refs/heads/main/apis.yml
 created: '2026-09-10'
 modified: '2026-09-10'
 specificationVersion: '0.21'
+image: https://crustapi.com/uploads/crustapi-12-handdrawn-continents-amber-accent.svg
 tags:
+- Search
+- Google Maps
+- LinkedIn
+- SERP / Web Scraping
+- Business & Lead Data
+- People / Recruiting Data
+- Data Enrichment
+- AI Agents / MCP
+- RAG
+- Data
+apis:
+- name: CrustAPI
+  description: REST API for structured Google and public LinkedIn data, key-authenticated, with a published OpenAPI
+    spec and an x402 agent-payment endpoint. Includes bulk/batch LinkedIn processing with webhook delivery.
+  humanURL: https://crustapi.com/docs
+  baseURL: https://crustapi.com
+  image: https://crustapi.com/uploads/crustapi-12-handdrawn-continents-amber-accent.svg
+  tags:
   - Search
   - Google Maps
   - LinkedIn
@@ -18,36 +36,78 @@ tags:
   - AI Agents / MCP
   - RAG
   - Data
-apis:
-  - name: CrustAPI
-    description: >-
-      REST API for structured Google and public LinkedIn data, key-authenticated, with a published OpenAPI spec and an
-      x402 agent-payment endpoint. Includes bulk/batch LinkedIn processing with webhook delivery.
-    humanURL: https://crustapi.com/docs
-    baseURL: https://crustapi.com
-    tags:
-      - Search
-      - Google Maps
-      - LinkedIn
-      - SERP / Web Scraping
-      - Business & Lead Data
-      - People / Recruiting Data
-      - Data Enrichment
-      - AI Agents / MCP
-      - RAG
-      - Data
-    properties:
-      - type: OpenAPI
-        url: https://crustapi.com/v1/openapi.json
-      - type: Documentation
-        url: https://crustapi.com/docs
-      - type: LLMsTxt
-        url: https://crustapi.com/llms.txt
+  properties:
+  - type: OpenAPI
+    url: https://crustapi.com/v1/openapi.json
+  - type: Documentation
+    url: https://crustapi.com/docs
+  - type: LLMsTxt
+    url: https://crustapi.com/llms.txt
+  - type: MCPServer
+    url: mcp/crustapi-mcp.yml
+  - type: ToolCrosswalk
+    url: mcp/crustapi-tool-crosswalk.yml
+  - type: Webhooks
+    url: asyncapi/crustapi-webhooks.yml
+  - type: RateLimits
+    url: rate-limits/crustapi-rate-limits.yml
+  - type: Plans
+    url: plans/crustapi-plans-pricing.yml
+  - type: Conventions
+    url: conventions/crustapi-conventions.yml
+  - type: ErrorCatalog
+    url: errors/crustapi-problem-types.yml
+  - type: Lifecycle
+    url: lifecycle/crustapi-lifecycle.yml
+  - type: StatusPage
+    url: https://status.crustapi.com/
+  - type: DataModel
+    url: data-model/crustapi-data-model.yml
+  - type: Sandbox
+    url: sandbox/crustapi-sandbox.yml
+  - type: Conformance
+    url: conformance/crustapi-conformance.yml
+  - type: CLI
+    url: cli/crustapi-cli.yml
+  - type: AgentSkill
+    url: skills/_index.yml
+  - type: Overlay
+    url: overlays/crustapi-openapi-overlay.yaml
+  - type: Pricing
+    url: https://crustapi.com/pricing
+  - type: SignUp
+    url: https://crustapi.com/signup
+  - type: TermsOfService
+    url: https://crustapi.com/terms
+  - type: PrivacyPolicy
+    url: https://crustapi.com/privacy
+  - type: GitHubOrganization
+    url: https://github.com/CrustAPI
 maintainers:
-  - FN: CrustAPI
-    url: https://crustapi.com
+- FN: CrustAPI
+  url: https://crustapi.com
 generated:
   by: apis.io/add
   model: claude-opus-4-8
   confidence: 93
   at: '2026-09-10T10:46:08.950Z'
+common:
+- type: Website
+  url: https://crustapi.com
+- type: TrustCenter
+  url: security/crustapi-trust-center.yml
+- type: DomainSecurity
+  url: security/crustapi-domain-security.yml
+- type: Authentication
+  url: authentication/crustapi-authentication.yml
+- type: SDKs
+  url: packages/crustapi-packages.yml
+- type: Packages
+  url: packages/crustapi-packages.yml
+- type: Compliance
+  url: security/crustapi-trust-center.yml
+x-enrichment:
+  date: '2026-09-10'
+  status: enriched
+  artifacts_added: 26
+  pass: local-v3

@@ -1,0 +1,24 @@
+generated: '2026-09-10'
+method: generated
+source: >-
+  Generated from https://crustapi.com/v1/openapi.json operationIds and the conventions,
+  rate-limit and error artifacts in this repo. Steps use only real operationIds; no
+  provider-published skills/AGENTS.md was found.
+api: CrustAPI
+skills:
+- file: crustapi-google-lead-list.md
+  name: Build a local-business lead list
+  operations:
+  - search
+- file: crustapi-linkedin-profile-lookup.md
+  name: Look up a public LinkedIn profile or people search
+  operations:
+  - linkedin
+- file: crustapi-linkedin-batch-refresh.md
+  name: Refresh a contact database in bulk with webhook delivery
+  operations:
+  - linkedinBatch
+- file: crustapi-web-search-rag.md
+  name: Pull web search + page content for RAG
+  operations:
+  - search

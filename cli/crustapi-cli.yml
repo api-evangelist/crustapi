@@ -1,0 +1,31 @@
+generated: '2026-09-10'
+method: searched
+source: >-
+  npm crustapi-cli (0.2.0, published 2026-07-15) and the CLI section of
+  https://crustapi.com/llms.txt.
+api: CrustAPI
+name: crustapi-cli
+binary: crust
+install:
+- method: npm
+  command: npm install -g crustapi-cli
+auth:
+  env: CRUSTAPI_API_KEY
+  note: key_live_ prefix
+commands:
+- name: (default query)
+  example: crust "dentists in miami"
+  description: Shorthand query against the default search surface.
+- name: search
+  example: crust search coffee --type maps --location "Austin, TX" --limit 20
+  description: Google search across any surface via --type; --location, --limit flags; --csv for CSV output.
+- name: linkedin
+  example: crust linkedin https://www.linkedin.com/in/williamhgates
+  description: Public LinkedIn lookup by URL, or people search (crust linkedin "head of growth fintech" --enrich).
+output:
+  stdout: JSON (pipes cleanly to jq)
+  stderr: status line
+  csv_flag: --csv
+note: >-
+  First-party CLI. Binary lives in packages/ (crustapi-packages.yml). Mirrors the REST
+  /v1/search and /v1/linkedin operations.

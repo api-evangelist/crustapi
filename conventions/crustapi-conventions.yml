@@ -1,0 +1,66 @@
+generated: '2026-09-10'
+method: searched
+source: https://crustapi.com/docs + https://crustapi.com/v1/openapi.json + live probes
+api: CrustAPI
+authentication:
+  style: api-key
+  header: x-api-key
+  key_prefix: key_live_
+  note: Single scheme. Public /v1/demo needs no key.
+versioning:
+  style: uri-path
+  current: v1 (path); OpenAPI info.version 2.0.0
+  deprecation_policy: none-documented
+pagination:
+  style: page-and-limit
+  params:
+  - page
+  - num
+  - limit
+  - start
+  - nextPageToken
+  response_fields: []
+  note: >-
+    Per-endpoint defaults/caps — maps limit default 20 max 100; reviews num default 20 max
+    50; jobs 25/100; posts 50/100; web search 10/15; people 10/50. maps/search also expose
+    nextPageToken and cid/fid/placeId cursors.
+idempotency:
+  coverage: none
+  mechanism: none
+  note: >-
+    No Idempotency-Key header or replay-protection documented. The mutating surface is
+    limited to POST /v1/linkedin/batch (a data-processing job) and the x402 credit top-up;
+    neither documents idempotent replay. Core surface is read-only GET.
+reversibility:
+  status: na
+  note: >-
+    The API surface is read-only data retrieval (GET search/linkedin/demo) plus a batch
+    job that returns data; there is no persistent resource to cancel/refund/restore at the
+    API layer. The only reversal in the product is billing-level: a full refund within 7
+    days of first payment if under 20% is used (https://crustapi.com/pricing) — not an API
+    operation.
+rate_limit_signaling:
+  concurrency_based: true
+  exhaustion_status: 429
+  headers:
+  - Retry-After
+  note: See rate-limits/crustapi-rate-limits.yml. No X-RateLimit-*/RateLimit-* counters documented.
+error_envelope:
+  format: json
+  rfc9457: false
+  shape: '{"error": "<message>", ...}'
+  note: >-
+    Observed on the live 402 x402 challenge ({"error":"Payment Required", x402Version:2,
+    ...}). OpenAPI 4xx/5xx responses carry description strings only; no problem+json.
+request_tracing:
+  request_id_header: none-documented
+  job_header: X-Crustapi-Job (returned on async batch webhook delivery)
+freshness:
+  note: >-
+    Identical live-read requests may reuse a result for up to 60 seconds; pass fresh=1 to
+    force a new fetch. People/Jobs search use periodically-updated indexes.
+cross_reference:
+  errors: errors/crustapi-problem-types.yml
+  lifecycle: lifecycle/crustapi-lifecycle.yml
+  authentication: authentication/crustapi-authentication.yml
+  rate_limits: rate-limits/crustapi-rate-limits.yml

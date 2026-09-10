@@ -1,0 +1,44 @@
+overlay: 1.0.0
+info:
+  title: CrustAPI enrichment overlay
+  version: 1.0.0
+extends: ../openapi/crustapi-openapi.json
+x-source: >-
+  API Evangelist enrichment overlay for CrustAPI. Adds operation tags (the published spec
+  declares none), documents the concurrency-based rate-limit signaling (429 + Retry-After),
+  and records the x402 agent-payment top-up surface that lives outside the spec. Does not
+  mutate the original OpenAPI.
+actions:
+- target: $.paths['/v1/search'].get
+  update:
+    tags:
+    - Search
+- target: $.paths['/v1/linkedin'].get
+  update:
+    tags:
+    - LinkedIn
+- target: $.paths['/v1/demo'].get
+  update:
+    tags:
+    - Demo
+- target: $.paths['/v1/linkedin/batch'].post
+  update:
+    tags:
+    - LinkedIn
+    - Batch
+- target: $.info
+  update:
+    x-rate-limit:
+      model: concurrency
+      exhaustion_status: 429
+      headers:
+      - Retry-After
+    x-agent-payment:
+      protocol: x402
+      version: 2
+      endpoint: POST https://crustapi.com/v1/x402/topup?pack=agent
+      network: eip155:8453
+      asset: USDC
+      note: >-
+        Real 402 x402 v2 challenge verified live 2026-09-10; not represented as a path in
+        the published spec.

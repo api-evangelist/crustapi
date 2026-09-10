@@ -1,0 +1,57 @@
+generated: '2026-09-10'
+method: derived
+source: >-
+  Derived by binding the four crustapi-mcp tools (from llms.txt + the npm package
+  description) to operationIds in the published OpenAPI (https://crustapi.com/v1/openapi.json).
+  The live MCP tool inputSchemas are not introspected here (stdio, key-gated); tools are
+  mapped by name/semantics with confidence set accordingly.
+api: CrustAPI
+surfaces:
+  openapi: https://crustapi.com/v1/openapi.json
+  mcp: 'npx -y crustapi-mcp (stdio, local; env CRUSTAPI_API_KEY)'
+  graphql: null
+  gated:
+  - mcp (requires a locally-run stdio server + API key; inputSchemas not publicly introspectable)
+crosswalk:
+- tool: search
+  category: search
+  rest:
+  - search
+  binding: 'GET /v1/search — the tool selects the Google surface via the `type` query param (web/maps/places/news/shopping/images/videos/scholar/patents/autocomplete/lens).'
+  confidence: high
+  note: Inherits the /v1/search query parameters (q, type, gl, hl, location, limit, num, page, etc.) as its inputSchema.
+- tool: scrape_webpage
+  category: content
+  rest:
+  - search
+  binding: 'GET /v1/search with type=webpage (and url=); returns page content as clean text/markdown.'
+  confidence: medium
+  note: Same backing operation as `search`, specialized to the webpage surface.
+- tool: get_reviews
+  category: reviews
+  rest:
+  - search
+  binding: 'GET /v1/search with type=reviews; num paginates (max 50).'
+  confidence: medium
+  note: Same backing operation, specialized to the reviews surface.
+- tool: linkedin
+  category: people-data
+  rest:
+  - linkedin
+  binding: 'GET /v1/linkedin — surface chosen via `type` (profile/refresh/company/posts/jobs/search|people).'
+  confidence: high
+  note: Inherits the /v1/linkedin query parameters as its inputSchema.
+mcp_only: []
+rest_only:
+- operationId: demoSearch
+  reason: Public no-key demo endpoint (GET /v1/demo); not exposed as an MCP tool.
+- operationId: linkedinBatch
+  reason: >-
+    POST /v1/linkedin/batch bulk/webhook processing (up to 10,000 URLs) has no dedicated
+    MCP tool; the MCP `linkedin` tool covers single-item lookups only.
+coverage:
+  mcp_tools: 4
+  mapped_to_rest: 4
+  mcp_only: 0
+  rest_only: 2
+  rest_operations_total: 4

@@ -1,0 +1,47 @@
+generated: '2026-09-10'
+method: searched
+probe: true
+source: https://trust.crustapi.com/
+url: https://trust.crustapi.com/
+note: >-
+  Trust center is live and first-party (title "trust center - crustapi"). Compliance
+  posture is self-assessed, not audited: GDPR and CCPA are declared "Compliant"; SOC 2
+  is stated as roadmap only ("SOC 2 is on our roadmap; no badge appears here until an
+  auditor signs"). No ISO 27001 / PCI DSS / HIPAA. Corrected from the keyword-probe
+  output, which had mis-credited SOC 2 as certified.
+certifications: []
+compliance_programs:
+- framework: GDPR
+  status: self-assessed-compliant
+  evidence: https://trust.crustapi.com/
+- framework: CCPA
+  status: self-assessed-compliant
+  evidence: https://trust.crustapi.com/
+roadmap:
+- framework: SOC 2
+  status: planned-not-certified
+  evidence: https://trust.crustapi.com/
+subprocessors:
+- Stripe
+- Resend
+- Vercel
+- Fly.io
+- Tigris
+- Cloudflare R2
+data_residency: >-
+  Primarily United States. Tigris storage is globally distributed; delivered dataset
+  files on Cloudflare R2 are placed in North America.
+encryption:
+  passwords: scrypt
+  session_tokens: SHA-256 hash
+  authenticator_secrets: encrypted at rest
+security_contact: support@crustapi.com
+vulnerability_disclosure: none-published
+bug_bounty: none-published
+evidence:
+- source: https://trust.crustapi.com/
+  keywords:
+  - trust center
+  - gdpr
+  - ccpa
+  - subprocessors

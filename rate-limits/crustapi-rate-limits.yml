@@ -1,0 +1,47 @@
+generated: '2026-09-10'
+method: searched
+source: https://crustapi.com/docs
+api: CrustAPI
+model: concurrency
+note: >-
+  Limits are on in-flight (concurrent) requests per API key, not a requests-per-window
+  quota. Volume is governed by credit balance, not a rate window. Empty/failed results are
+  free and not billed.
+limits:
+- scope: per-key
+  surfaces:
+  - web
+  - news
+  concurrency_free: 2
+  concurrency_paid: 5
+  unit: in-flight requests
+- scope: per-key
+  surfaces:
+  - images
+  - shopping
+  - videos
+  - scholar
+  - lens
+  concurrency_free: 1
+  concurrency_paid: 3
+  unit: in-flight requests
+- scope: per-key
+  surfaces:
+  - maps
+  - places
+  - reviews
+  - autocomplete
+  - patents
+  - webpage
+  - linkedin
+  concurrency: unlimited
+  note: No in-flight limit documented for these surfaces.
+exhaustion:
+  status: 429
+  response_headers:
+  - Retry-After
+  note: Requests over the concurrency limit return 429 with a Retry-After header.
+demo:
+  endpoint: GET /v1/demo
+  note: Public no-key demo is rate-limited (429 on exhaustion); exact numbers not published.
+limit_count: 2

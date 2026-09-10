@@ -1,0 +1,55 @@
+generated: '2026-09-10'
+method: derived
+source: >-
+  Derived from the 4xx/5xx responses in https://crustapi.com/v1/openapi.json and the live
+  402 body observed at /v1/x402/topup. No RFC 9457 problem+json; error bodies are a plain
+  JSON object ({"error": "<message>"}).
+api: CrustAPI
+format: json
+rfc9457: false
+envelope: '{"error": "<message>"}'
+problem_types:
+- status: 400
+  title: Missing or invalid parameter
+  operations:
+  - search
+  - linkedin
+  - linkedinBatch
+  remediation: Check required query params for the chosen type (e.g. q or url).
+- status: 401
+  title: Unauthorized
+  operations:
+  - search
+  - linkedin
+  - linkedinBatch
+  remediation: Supply a valid x-api-key (key_live_ prefix).
+- status: 402
+  title: Out of credits / Payment Required
+  operations:
+  - search
+  - linkedin
+  - linkedinBatch
+  remediation: >-
+    Top up credits in the dashboard, or (for agents) POST /v1/x402/topup to buy credits via
+    x402. Live 402 body includes an x402 v2 payment-required challenge.
+- status: 429
+  title: Rate limited
+  operations:
+  - search
+  - linkedin
+  - demoSearch
+  remediation: Reduce in-flight concurrency; honor the Retry-After header.
+- status: 502
+  title: Upstream error
+  operations:
+  - search
+  remediation: Transient upstream (Google) failure; retry.
+- status: 503
+  title: Service unavailable
+  operations:
+  - search
+  - linkedin
+  remediation: Transient; retry with backoff.
+note: >-
+  Empty/failed results are not billed. Titles are derived from OpenAPI response
+  descriptions; the docs do not publish a dedicated error-code reference.

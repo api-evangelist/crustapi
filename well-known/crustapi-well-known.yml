@@ -1,0 +1,35 @@
+generated: '2026-09-10'
+method: probed
+source: Live probes 2026-09-10 of /.well-known/* on the crustapi.com host.
+note: >-
+  Every probed /.well-known/ path returns HTTP 404 (an HTML "Not Found" page, not a
+  document). No WellKnown or SecurityTxt pointer is emitted — a recorded absence, not a
+  presence. crustapi.com is the only host in the record (baseURL and the single OpenAPI
+  server share it); no OAuth/OIDC metadata exists because the API is api-key only.
+hosts:
+- host: crustapi.com
+  documents:
+  - path: /.well-known/security.txt
+    status: 404
+    file: null
+  - path: /.well-known/openid-configuration
+    status: 404
+    file: null
+  - path: /.well-known/oauth-authorization-server
+    status: 404
+    file: null
+  - path: /.well-known/oauth-protected-resource
+    status: 404
+    file: null
+  - path: /.well-known/api-catalog
+    status: 404
+    file: null
+  - path: /.well-known/ai-plugin.json
+    status: 404
+    file: null
+  - path: /.well-known/agent-card.json
+    status: 404
+    file: null
+  - path: /.well-known/agent.json
+    status: 404
+    file: null
