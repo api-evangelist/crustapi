@@ -19,32 +19,20 @@ tags:
 - RAG
 - Data
 apis:
-- name: CrustAPI
-  description: REST API for structured Google and public LinkedIn data, key-authenticated, with a published OpenAPI
-    spec and an x402 agent-payment endpoint. Includes bulk/batch LinkedIn processing with webhook delivery.
+- aid: crustapi:crustapi-demo-api
+  name: CrustAPI Demo API
+  description: The Demo API from CrustAPI — 1 operation(s) for demo.
   humanURL: https://crustapi.com/docs
   baseURL: https://crustapi.com
-  image: https://crustapi.com/uploads/crustapi-12-handdrawn-continents-amber-accent.svg
   tags:
-  - Search
-  - Google Maps
-  - LinkedIn
-  - SERP / Web Scraping
-  - Business & Lead Data
-  - People / Recruiting Data
-  - Data Enrichment
-  - AI Agents / MCP
-  - RAG
-  - Data
+  - Demo
   properties:
   - type: OpenAPI
-    url: https://crustapi.com/v1/openapi.json
+    url: openapi/crustapi-demo-api-openapi.yml
   - type: Documentation
     url: https://crustapi.com/docs
   - type: LLMsTxt
     url: https://crustapi.com/llms.txt
-  - type: MCPServer
-    url: mcp/crustapi-mcp.yml
   - type: ToolCrosswalk
     url: mcp/crustapi-tool-crosswalk.yml
   - type: Webhooks
@@ -69,10 +57,102 @@ apis:
     url: conformance/crustapi-conformance.yml
   - type: CLI
     url: cli/crustapi-cli.yml
-  - type: AgentSkill
-    url: skills/_index.yml
-  - type: Overlay
-    url: overlays/crustapi-openapi-overlay.yaml
+  - type: Pricing
+    url: https://crustapi.com/pricing
+  - type: SignUp
+    url: https://crustapi.com/signup
+  - type: TermsOfService
+    url: https://crustapi.com/terms
+  - type: PrivacyPolicy
+    url: https://crustapi.com/privacy
+  - type: GitHubOrganization
+    url: https://github.com/CrustAPI
+- aid: crustapi:crustapi-linkedin-api
+  name: CrustAPI Linkedin API
+  description: The Linkedin API from CrustAPI — 2 operation(s) for linkedin.
+  humanURL: https://crustapi.com/docs
+  baseURL: https://crustapi.com
+  tags:
+  - Linkedin
+  properties:
+  - type: OpenAPI
+    url: openapi/crustapi-linkedin-api-openapi.yml
+  - type: Documentation
+    url: https://crustapi.com/docs
+  - type: LLMsTxt
+    url: https://crustapi.com/llms.txt
+  - type: ToolCrosswalk
+    url: mcp/crustapi-tool-crosswalk.yml
+  - type: Webhooks
+    url: asyncapi/crustapi-webhooks.yml
+  - type: RateLimits
+    url: rate-limits/crustapi-rate-limits.yml
+  - type: Plans
+    url: plans/crustapi-plans-pricing.yml
+  - type: Conventions
+    url: conventions/crustapi-conventions.yml
+  - type: ErrorCatalog
+    url: errors/crustapi-problem-types.yml
+  - type: Lifecycle
+    url: lifecycle/crustapi-lifecycle.yml
+  - type: StatusPage
+    url: https://status.crustapi.com/
+  - type: DataModel
+    url: data-model/crustapi-data-model.yml
+  - type: Sandbox
+    url: sandbox/crustapi-sandbox.yml
+  - type: Conformance
+    url: conformance/crustapi-conformance.yml
+  - type: CLI
+    url: cli/crustapi-cli.yml
+  - type: Pricing
+    url: https://crustapi.com/pricing
+  - type: SignUp
+    url: https://crustapi.com/signup
+  - type: TermsOfService
+    url: https://crustapi.com/terms
+  - type: PrivacyPolicy
+    url: https://crustapi.com/privacy
+  - type: GitHubOrganization
+    url: https://github.com/CrustAPI
+- aid: crustapi:crustapi-search-api
+  name: CrustAPI Search API
+  description: The Search API from CrustAPI — 1 operation(s) for search.
+  humanURL: https://crustapi.com/docs
+  baseURL: https://crustapi.com
+  tags:
+  - Search
+  properties:
+  - type: OpenAPI
+    url: openapi/crustapi-search-api-openapi.yml
+  - type: Documentation
+    url: https://crustapi.com/docs
+  - type: LLMsTxt
+    url: https://crustapi.com/llms.txt
+  - type: ToolCrosswalk
+    url: mcp/crustapi-tool-crosswalk.yml
+  - type: Webhooks
+    url: asyncapi/crustapi-webhooks.yml
+  - type: RateLimits
+    url: rate-limits/crustapi-rate-limits.yml
+  - type: Plans
+    url: plans/crustapi-plans-pricing.yml
+  - type: Conventions
+    url: conventions/crustapi-conventions.yml
+  - type: ErrorCatalog
+    url: errors/crustapi-problem-types.yml
+  - type: Lifecycle
+    url: lifecycle/crustapi-lifecycle.yml
+  - type: StatusPage
+    url: https://status.crustapi.com/
+  - type: DataModel
+    url: data-model/crustapi-data-model.yml
+  - type: Sandbox
+    url: sandbox/crustapi-sandbox.yml
+  - type: Conformance
+    url: conformance/crustapi-conformance.yml
+  - type: CLI
+    url: cli/crustapi-cli.yml
   - type: Pricing
     url: https://crustapi.com/pricing
   - type: SignUp
@@ -92,6 +172,12 @@ generated:
   confidence: 93
   at: '2026-09-10T10:46:08.950Z'
 common:
+- type: MCPServer
+  url: mcp/crustapi-mcp.yml
+- type: AgentSkill
+  url: skills/_index.yml
+- type: Overlay
+  url: overlays/crustapi-openapi-overlay.yaml
 - type: Website
   url: https://crustapi.com
 - type: TrustCenter
