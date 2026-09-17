@@ -67,16 +67,16 @@ apis:
     url: https://crustapi.com/privacy
   - type: GitHubOrganization
     url: https://github.com/CrustAPI
-- aid: crustapi:crustapi-linkedin-api
-  name: CrustAPI Linkedin API
-  description: The Linkedin API from CrustAPI — 2 operation(s) for linkedin.
+- aid: crustapi:crustapi-search-api
+  name: CrustAPI Search API
+  description: The Search API from CrustAPI — 1 operation(s) for search.
   humanURL: https://crustapi.com/docs
   baseURL: https://crustapi.com
   tags:
-  - Linkedin
+  - Search
   properties:
   - type: OpenAPI
-    url: openapi/crustapi-linkedin-api-openapi.yml
+    url: openapi/crustapi-search-api-openapi.yml
   - type: Documentation
     url: https://crustapi.com/docs
   - type: LLMsTxt
@@ -115,16 +115,16 @@ apis:
     url: https://crustapi.com/privacy
   - type: GitHubOrganization
     url: https://github.com/CrustAPI
-- aid: crustapi:crustapi-search-api
-  name: CrustAPI Search API
-  description: The Search API from CrustAPI — 1 operation(s) for search.
+- aid: crustapi:crustapi-linked-in-api
+  name: CrustAPI Linked In API
+  description: The Linked In API from CrustAPI — 2 operation(s) for linked in.
   humanURL: https://crustapi.com/docs
   baseURL: https://crustapi.com
   tags:
-  - Search
+  - Linked In
   properties:
   - type: OpenAPI
-    url: openapi/crustapi-search-api-openapi.yml
+    url: openapi/crustapi-linked-in-api-openapi.yml
   - type: Documentation
     url: https://crustapi.com/docs
   - type: LLMsTxt
