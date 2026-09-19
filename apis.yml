@@ -121,6 +121,8 @@ apis:
   humanURL: https://crustapi.com/docs
   baseURL: https://crustapi.com
   tags:
+  - LinkedIn
+  tags_raw:
   - Linked In
   properties:
   - type: OpenAPI
