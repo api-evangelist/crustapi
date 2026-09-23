@@ -1,0 +1,276 @@
+openapi: 3.2.0
+info:
+  title: Crust Linkedin API
+  version: 2.0.0
+  description: Self-scraped Google and public LinkedIn data as a clean JSON API.
+servers:
+- url: https://crustapi.com
+security:
+- ApiKeyAuth: []
+tags:
+- name: Linked In
+paths:
+  /v1/linkedin:
+    get:
+      operationId: linkedin
+      summary: Public LinkedIn data
+      description: 'Public (logged-out) LinkedIn data. Set `type` to choose what you get (default `profile`). profile/company/posts need `url`; jobs takes `keywords` (plus optional `location`) or a job `url`; search (people search) needs `keywords`. The data comes back under a key named after the type: `profile` and `company` are objects, `posts`, `jobs`, and `people` (for type=search) are arrays. Billed 1 credit per successful call. Exception: people search with `enrich=true` bills 1 credit per full profile returned. Empty results are free. A private or empty profile returns 200 with null plus a note and is not charged.'
+      parameters:
+      - name: type
+        in: query
+        required: false
+        description: 'What to fetch. Singular gets the one you point at, plural finds many: person (one profile by URL) / people (find people by keywords) / company / job (one job by URL) / jobs (find jobs by keywords) / posts / refresh (fast freshness check). `profile` and `search` are the previous names for person and people and keep working unchanged.'
+        schema:
+          type: string
+          default: person
+          enum:
+          - person
+          - people
+          - company
+          - job
+          - jobs
+          - posts
+          - refresh
+          - profile
+          - search
+      - name: url
+        in: query
+        required: false
+        description: A linkedin.com URL. Required for profile (linkedin.com/in/...), company (linkedin.com/company/...), and posts (either). jobs also accepts a job URL instead of keywords.
+        schema:
+          type: string
+      - name: keywords
+        in: query
+        required: false
+        description: What to search for. Required for type=search; required for type=jobs unless you pass a job `url`.
+        schema:
+          type: string
+      - name: location
+        in: query
+        required: false
+        description: 'type=jobs: city/region filter for the job search.'
+        schema:
+          type: string
+      - name: start
+        in: query
+        required: false
+        description: 'type=jobs: result offset for paging.'
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: limit
+        in: query
+        required: false
+        description: 'How many results to return. jobs: default 25, max 50. posts: default 50, max 100. search: default 10, max 15.'
+        schema:
+          type: integer
+      - name: enrich
+        in: query
+        required: false
+        description: 'type=search: return each person''s FULL profile in the same call. Bills 1 credit per full profile returned instead of 1 per call.'
+        schema:
+          type: boolean
+          default: false
+      - name: employees
+        in: query
+        required: false
+        description: 'type=company: include the employee list.'
+        schema:
+          type: boolean
+          default: false
+      - name: comments
+        in: query
+        required: false
+        description: 'type=posts: include comments on each post.'
+        schema:
+          type: boolean
+          default: false
+      - name: member
+        in: query
+        required: false
+        description: 'type=refresh: also return memberIdentifier, LinkedIn''s permanent numeric member id. It requires reading the full profile page, so it is opt-in; the id is static, so fetch it once and keep it.'
+        schema:
+          type: boolean
+          default: false
+      - name: email
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+        description: type=profile only. When true, appends workEmail, emailStatus (verified | pattern-likely | unknown) and emailConfidence to the person record. Included in the same 1 credit, best-effort; a guess is never labeled verified.
+      - name: domain
+        in: query
+        required: false
+        schema:
+          type: string
+        description: 'type=profile with email=true only. The employer''s domain (e.g. stripe.com). When supplied, the email finder uses it directly instead of resolving the company from the profile''s experience — faster, and it also works for profiles LinkedIn serves in restricted view (name only, no employer), where the domain otherwise cannot be resolved. Accepts a bare domain, a subdomain, or a full URL. Alias: companyDomain.'
+      - name: headline
+        in: query
+        required: false
+        description: 'type=profile: for profiles whose companyState is `restricted`, attempt to recover the member''s own public headline (free text, often naming the employer). Best effort, roughly one in twenty.'
+        schema:
+          type: boolean
+          default: false
+      - name: title
+        in: query
+        required: false
+        description: 'type=people only. Find people by profession (e.g. "accountants", "real estate agents"). Combine with location for a single city ("Chicago, IL"). Values come from LinkedIn public service categories; an unknown profession returns no results rather than a guess. Alias: profession.'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Public LinkedIn data for the chosen type. The populated data key depends on `type` (`people` for search). A private or empty profile returns null plus a note, uncharged.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkedInResult'
+        '400':
+          description: Missing or invalid url or keywords.
+        '401':
+          description: Missing or invalid API key.
+        '402':
+          description: Out of credits.
+        '429':
+          description: Rate limited.
+        '503':
+          description: LinkedIn temporarily unavailable, retry shortly (uncharged).
+      tags:
+      - Linked In
+  /v1/linkedin/batch:
+    post:
+      operationId: linkedinBatch
+      summary: Refresh many LinkedIn profiles in one request
+      description: 'Send up to 100 profile URLs and get results back IN INPUT ORDER. Built for keeping a large database current without one HTTP round trip per profile. Billing matches the single endpoint: one credit per successful row, not-accessible rows are free, and a malformed URL is returned as a per-row error rather than charged. A failing row never fails the batch.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - urls
+              properties:
+                urls:
+                  type: array
+                  items:
+                    type: string
+                  maxItems: 100
+                  description: linkedin.com/in/ URLs or bare vanity ids.
+                type:
+                  type: string
+                  enum:
+                  - refresh
+                  - profile
+                  default: refresh
+                member:
+                  type: boolean
+                  default: false
+                  description: 'refresh only: also return memberIdentifier.'
+                schema:
+                  type: string
+                  enum:
+                  - scrapin
+                  description: 'profile only: return the ScrapIn-compatible shape.'
+      responses:
+        '200':
+          description: Per-URL results in input order.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  succeeded:
+                    type: integer
+                  charged:
+                    type: integer
+                  tookMs:
+                    type: integer
+                  creditsRemaining:
+                    type: integer
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        url:
+                          type: string
+                        ok:
+                          type: boolean
+                        data:
+                          type: object
+                          description: Present when ok. The same shape the single endpoint returns.
+                        error:
+                          type: string
+                        retryable:
+                          type: boolean
+        '400':
+          description: Bad body, no urls, or more than 100 urls.
+        '401':
+          description: Invalid or missing API key.
+        '402':
+          description: Out of credits.
+      tags:
+      - Linked In
+components:
+  schemas:
+    LinkedInResult:
+      type: object
+      description: Polymorphic result. `type` echoes the request as linkedin-<type>; the populated data key depends on `type` (`people` for search).
+      properties:
+        type:
+          type: string
+          description: linkedin-profile, linkedin-company, linkedin-posts, linkedin-jobs, or linkedin-search.
+        url:
+          type: string
+          description: The requested LinkedIn URL (profile, company, posts, and url-based jobs calls).
+        query:
+          type: string
+          description: The requested keywords (search and keyword-based jobs calls).
+        profile:
+          type:
+          - object
+          - 'null'
+          description: 'type=profile: the person''s public profile. Null with a `note` if the profile is private or empty (uncharged). Includes `photo` (the member''s public profile photo URL, only ever present when the member''s own settings make it visible to anyone without login) and `photoState` (''public'' when a photo URL is returned; ''not_published'' when LinkedIn serves no member photo publicly, in which case `photo` is null).'
+          additionalProperties: true
+        company:
+          type:
+          - object
+          - 'null'
+          description: 'type=company: the public company page. Includes employees with employees=true.'
+          additionalProperties: true
+        posts:
+          type: array
+          description: 'type=posts: public posts. Includes comments with comments=true.'
+          items:
+            type: object
+            additionalProperties: true
+        jobs:
+          type: array
+          description: 'type=jobs: public job listings.'
+          items:
+            type: object
+            additionalProperties: true
+        people:
+          type: array
+          description: 'type=search: matching people. With enrich=true each entry is the person''s full profile.'
+          items:
+            type: object
+            additionalProperties: true
+        note:
+          type: string
+          description: Present when a profile is private or empty.
+        creditsRemaining:
+          type:
+          - integer
+          - 'null'
+        tookMs:
+          type: integer
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key

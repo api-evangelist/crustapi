@@ -1,0 +1,36 @@
+{
+  "provider": "crustapi",
+  "sources": [
+    "_original/crustapi-openapi-original.json"
+  ],
+  "outputs": [
+    "crustapi-demo-api-openapi.yml",
+    "crustapi-linkedin-api-openapi.yml",
+    "crustapi-search-api-openapi.yml"
+  ],
+  "archived": [
+    "deleted 1 superseded output(s) from the previous generation"
+  ],
+  "errors": [],
+  "warnings": [],
+  "notes": [
+    "1 archived document(s) dropped as subsets of other archived documents",
+    "sourced from openapi/_original/ (1 archived document(s)); previously refined output at the top level was skipped rather than re-split",
+    "crustapi-openapi-original.json: upgraded openapi 3.0.3 -> OpenAPI 3.2.0",
+    "crustapi-openapi-original.json: tagged paths GET /v1/search -> Search",
+    "crustapi-openapi-original.json: tagged paths GET /v1/linkedin -> Linkedin",
+    "crustapi-openapi-original.json: tagged paths GET /v1/demo -> Demo",
+    "crustapi-openapi-original.json: tagged paths POST /v1/linkedin/batch -> Linkedin",
+    "crustapi-openapi-original.json: declared missing tag: Demo",
+    "crustapi-openapi-original.json: declared missing tag: Linkedin",
+    "crustapi-openapi-original.json: declared missing tag: Search",
+    "superseded outputs removed: crustapi-linked-in-api-openapi.yml",
+    "apis.yml register: written (+1 apis, 3 total)"
+  ],
+  "skipped": [
+    "_original/crustapi-openapi.json: archived document superseded by a larger archived document",
+    "crustapi-demo-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "crustapi-linked-in-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "crustapi-search-api-openapi.yml: previously refined output, superseded by openapi/_original/"
+  ]
+}
