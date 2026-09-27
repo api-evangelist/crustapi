@@ -176,6 +176,103 @@ paths:
       - Search
 components:
   schemas:
+    NewsItem:
+      type: object
+      properties:
+        title:
+          type: string
+        link:
+          type: string
+        snippet:
+          type:
+          - string
+          - 'null'
+        date:
+          type:
+          - string
+          - 'null'
+        source:
+          type:
+          - string
+          - 'null'
+        imageUrl:
+          type:
+          - string
+          - 'null'
+        position:
+          type: integer
+    Review:
+      type: object
+      properties:
+        rating:
+          type: integer
+        date:
+          type:
+          - string
+          - 'null'
+        isoDate:
+          type:
+          - string
+          - 'null'
+        snippet:
+          type:
+          - string
+          - 'null'
+        likes:
+          type: integer
+          description: Total reactions on the review (sum across reaction types).
+        user:
+          type: object
+          properties:
+            name:
+              type:
+              - string
+              - 'null'
+            thumbnail:
+              type:
+              - string
+              - 'null'
+            link:
+              type:
+              - string
+              - 'null'
+            reviews:
+              type:
+              - integer
+              - 'null'
+            photos:
+              type:
+              - integer
+              - 'null'
+        media:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              imageUrl:
+                type: string
+              caption:
+                type: string
+        link:
+          type:
+          - string
+          - 'null'
+        id:
+          type:
+          - string
+          - 'null'
+        response:
+          type:
+          - object
+          - 'null'
+          description: Owner reply, when present.
+          properties:
+            date:
+              type: string
+            snippet:
+              type: string
     Place:
       type: object
       description: A place. type=places returns the lean serper-parity subset; type=maps returns this full shape (contact details, categories, opening hours, attributes and photos on top).
@@ -394,6 +491,68 @@ components:
         copyright:
           type: string
           description: Copyright notice from IPTC metadata (sparse).
+    SearchResult:
+      type: object
+      description: Polymorphic result. `searchParameters` echoes your request; the populated array key depends on `type`.
+      properties:
+        searchParameters:
+          type: object
+          additionalProperties: true
+        organic:
+          type: array
+          description: web, scholar, patents, lens
+          items:
+            $ref: '#/components/schemas/OrganicResult'
+        places:
+          type: array
+          description: maps, places
+          items:
+            $ref: '#/components/schemas/Place'
+        news:
+          type: array
+          items:
+            $ref: '#/components/schemas/NewsItem'
+        shopping:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShoppingItem'
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageItem'
+        videos:
+          type: array
+          items:
+            $ref: '#/components/schemas/VideoItem'
+        reviews:
+          type: array
+          items:
+            $ref: '#/components/schemas/Review'
+        suggestions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Suggestion'
+        text:
+          type: string
+          description: 'type=webpage: the page''s readable text.'
+        markdown:
+          type: string
+          description: type=webpage with includeMarkdown=true.
+        metadata:
+          type: object
+          description: 'type=webpage: title + og/twitter/article meta.'
+          additionalProperties: true
+        jsonld:
+          description: 'type=webpage: parsed JSON-LD.'
+        nextPageToken:
+          type: string
+          description: 'type=reviews: cursor for the next page.'
+        creditsRemaining:
+          type:
+          - integer
+          - 'null'
+        tookMs:
+          type: integer
     OrganicResult:
       type: object
       description: Web / Scholar / Patents / Lens result.
@@ -467,140 +626,6 @@ components:
           - string
           - 'null'
           description: 'Scholar: full-text link when the side resource is an HTML copy (pdfUrl is null then).'
-    SearchResult:
-      type: object
-      description: Polymorphic result. `searchParameters` echoes your request; the populated array key depends on `type`.
-      properties:
-        searchParameters:
-          type: object
-          additionalProperties: true
-        organic:
-          type: array
-          description: web, scholar, patents, lens
-          items:
-            $ref: '#/components/schemas/OrganicResult'
-        places:
-          type: array
-          description: maps, places
-          items:
-            $ref: '#/components/schemas/Place'
-        news:
-          type: array
-          items:
-            $ref: '#/components/schemas/NewsItem'
-        shopping:
-          type: array
-          items:
-            $ref: '#/components/schemas/ShoppingItem'
-        images:
-          type: array
-          items:
-            $ref: '#/components/schemas/ImageItem'
-        videos:
-          type: array
-          items:
-            $ref: '#/components/schemas/VideoItem'
-        reviews:
-          type: array
-          items:
-            $ref: '#/components/schemas/Review'
-        suggestions:
-          type: array
-          items:
-            $ref: '#/components/schemas/Suggestion'
-        text:
-          type: string
-          description: 'type=webpage: the page''s readable text.'
-        markdown:
-          type: string
-          description: type=webpage with includeMarkdown=true.
-        metadata:
-          type: object
-          description: 'type=webpage: title + og/twitter/article meta.'
-          additionalProperties: true
-        jsonld:
-          description: 'type=webpage: parsed JSON-LD.'
-        nextPageToken:
-          type: string
-          description: 'type=reviews: cursor for the next page.'
-        creditsRemaining:
-          type:
-          - integer
-          - 'null'
-        tookMs:
-          type: integer
-    Review:
-      type: object
-      properties:
-        rating:
-          type: integer
-        date:
-          type:
-          - string
-          - 'null'
-        isoDate:
-          type:
-          - string
-          - 'null'
-        snippet:
-          type:
-          - string
-          - 'null'
-        likes:
-          type: integer
-          description: Total reactions on the review (sum across reaction types).
-        user:
-          type: object
-          properties:
-            name:
-              type:
-              - string
-              - 'null'
-            thumbnail:
-              type:
-              - string
-              - 'null'
-            link:
-              type:
-              - string
-              - 'null'
-            reviews:
-              type:
-              - integer
-              - 'null'
-            photos:
-              type:
-              - integer
-              - 'null'
-        media:
-          type: array
-          items:
-            type: object
-            properties:
-              type:
-                type: string
-              imageUrl:
-                type: string
-              caption:
-                type: string
-        link:
-          type:
-          - string
-          - 'null'
-        id:
-          type:
-          - string
-          - 'null'
-        response:
-          type:
-          - object
-          - 'null'
-          description: Owner reply, when present.
-          properties:
-            date:
-              type: string
-            snippet:
-              type: string
     ShoppingItem:
       type: object
       properties:
@@ -642,11 +667,6 @@ components:
           - 'null'
         position:
           type: integer
-    Suggestion:
-      type: object
-      properties:
-        value:
-          type: string
     VideoItem:
       type: object
       properties:
@@ -680,31 +700,11 @@ components:
           - 'null'
         position:
           type: integer
-    NewsItem:
+    Suggestion:
       type: object
       properties:
-        title:
+        value:
           type: string
-        link:
-          type: string
-        snippet:
-          type:
-          - string
-          - 'null'
-        date:
-          type:
-          - string
-          - 'null'
-        source:
-          type:
-          - string
-          - 'null'
-        imageUrl:
-          type:
-          - string
-          - 'null'
-        position:
-          type: integer
   securitySchemes:
     ApiKeyAuth:
       type: apiKey

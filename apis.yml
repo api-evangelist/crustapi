@@ -23,7 +23,6 @@ apis:
   name: CrustAPI Demo API
   description: The Demo API from CrustAPI — 1 operation(s) for demo.
   humanURL: https://crustapi.com/docs
-  baseURL: https://crustapi.com
   tags:
   - Demo
   properties:
@@ -71,7 +70,6 @@ apis:
   name: CrustAPI Search API
   description: The Search API from CrustAPI — 1 operation(s) for search.
   humanURL: https://crustapi.com/docs
-  baseURL: https://crustapi.com
   tags:
   - Search
   properties:
@@ -119,10 +117,7 @@ apis:
   name: CrustAPI Linked In API
   description: The Linked In API from CrustAPI — 2 operation(s) for linked in.
   humanURL: https://crustapi.com/docs
-  baseURL: https://crustapi.com
   tags:
-  - LinkedIn
-  tags_raw:
   - Linked In
   properties:
   - type: OpenAPI
