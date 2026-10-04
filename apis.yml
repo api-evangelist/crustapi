@@ -118,8 +118,6 @@ apis:
   description: The Linked In API from CrustAPI — 2 operation(s) for linked in.
   humanURL: https://crustapi.com/docs
   tags:
-  - LinkedIn
-  tags_raw:
   - Linked In
   properties:
   - type: OpenAPI
