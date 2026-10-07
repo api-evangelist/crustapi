@@ -169,6 +169,8 @@ generated:
   confidence: 93
   at: '2026-09-10T10:46:08.950Z'
 common:
+- type: Pricing
+  url: https://crustapi.com/pricing
 - type: MCPServer
   url: mcp/crustapi-mcp.yml
 - type: AgentSkill
