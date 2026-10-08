@@ -169,6 +169,10 @@ generated:
   confidence: 93
   at: '2026-09-10T10:46:08.950Z'
 common:
+- type: Plans
+  url: plans/crustapi-plans-pricing.yml
+- type: RateLimits
+  url: rate-limits/crustapi-rate-limits.yml
 - type: Pricing
   url: https://crustapi.com/pricing
 - type: MCPServer
