@@ -1,0 +1,2477 @@
+openapi: 3.2.0
+info:
+  title: Crust Google API
+  version: 2.1.0
+  description: People Refresh, public LinkedIn profiles, companies, posts, jobs and people search, plus Google Maps and Search. LinkedIn data uses public, logged-out sources. Returned fields vary by record. Wallet accounts use prepaid USD funds at each deposit’s saved endpoint rates. Eligible accounts receive $6 of free usage monthly; paid funds never expire. Empty and failed results are uncharged. Use explicit USD billing fields for accounting. See https://crustapi.com/docs and https://crustapi.com/pricing.
+servers:
+- url: https://crustapi.com
+security:
+- ApiKeyAuth: []
+tags:
+- name: Google
+  description: Google Maps, Search and other supported types.
+paths:
+  /v1/search:
+    get:
+      operationId: search
+      summary: Query any Google surface
+      description: 'One endpoint for the whole Google menu. Set `type` to choose the surface (default `web`). Each type returns a JSON response under its own key: web/scholar/patents/lens -> `organic`; news -> `news`; shopping -> `shopping`; images -> `images`; videos -> `videos`; maps/places -> `places`; reviews -> `reviews`; autocomplete -> `suggestions`; webpage -> `text` + `metadata` + `jsonld`. Google surfaces are billed per successful request at the Google Search rate, except type=maps, which bills per business returned at the Maps rate. Wallet prices depend on the available funds and their saved rates. Failed and empty results are free. Legacy credit accounts retain their existing billing model.'
+      parameters:
+      - name: type
+        in: query
+        required: false
+        description: Which Google surface to query.
+        schema:
+          type: string
+          default: web
+          enum:
+          - web
+          - maps
+          - places
+          - news
+          - shopping
+          - images
+          - videos
+          - reviews
+          - scholar
+          - patents
+          - autocomplete
+          - webpage
+          - lens
+      - name: q
+        in: query
+        required: false
+        description: The search query. Required for every type EXCEPT webpage and lens (use `url`) and reviews (use `placeId` / `cid` / `fid`).
+        schema:
+          type: string
+      - name: url
+        in: query
+        required: false
+        description: 'type=webpage: the page URL to scrape. type=lens: the image URL for reverse image search.'
+        schema:
+          type: string
+      - name: gl
+        in: query
+        required: false
+        description: Country code (us, gb, de, ...). Not used by maps, patents, or webpage.
+        schema:
+          type: string
+          default: us
+      - name: hl
+        in: query
+        required: false
+        description: Language code (en, es, ...). Not used by patents or webpage.
+        schema:
+          type: string
+          default: en
+      - name: page
+        in: query
+        required: false
+        description: Result page. Not used by reviews, autocomplete, webpage, or lens.
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+      - name: tbs
+        in: query
+        required: false
+        description: Time filter for web/news/images/videos (e.g. qdr:h past hour, qdr:d past day, qdr:w past week, qdr:m past month, qdr:y past year).
+        schema:
+          type: string
+      - name: num
+        in: query
+        required: false
+        description: 'type=reviews: reviews per page (default 20, max 50).'
+        schema:
+          type: integer
+      - name: ll
+        in: query
+        required: false
+        description: 'type=maps: GPS position and zoom as @latitude,longitude,zoom.'
+        schema:
+          type: string
+      - name: placeId
+        in: query
+        required: false
+        description: Google place id (ChIJ...). Optional for maps; identifies the place for reviews.
+        schema:
+          type: string
+      - name: cid
+        in: query
+        required: false
+        description: Google customer id. Optional for maps; identifies the place for reviews.
+        schema:
+          type: string
+      - name: fid
+        in: query
+        required: false
+        description: Google feature id (0x..:0x..). Identifies the place for reviews.
+        schema:
+          type: string
+      - name: sortBy
+        in: query
+        required: false
+        description: 'type=reviews: review sort order.'
+        schema:
+          type: string
+          enum:
+          - mostRelevant
+          - newest
+          - highest
+          - lowest
+          default: mostRelevant
+      - name: nextPageToken
+        in: query
+        required: false
+        description: 'type=reviews: cursor from the previous response to fetch the next page of reviews.'
+        schema:
+          type: string
+      - name: includeMarkdown
+        in: query
+        required: false
+        description: 'type=webpage: also return the page rendered as Markdown.'
+        schema:
+          type: boolean
+          default: false
+      - name: location
+        in: query
+        required: false
+        description: City/region hint for web and places.
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: 'type=maps only: how many businesses to return (1-100). Each returned business is one Maps billing unit.'
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: stars
+        in: query
+        required: false
+        description: 'Maps: request available 1–5-star review counts in reviewsDistribution. Can increase response time. Alias: details=true.'
+        schema:
+          type: boolean
+      - name: fresh
+        in: query
+        schema:
+          type: integer
+        description: Set fresh=1 to request a new Google result. Reused identical searches are marked cached and cacheAgeSeconds.
+      - name: details
+        in: query
+        schema:
+          type: boolean
+        description: Alias for stars=true on Maps. Requests available 1–5-star review counts and can increase response time.
+      responses:
+        '200':
+          description: Results for the chosen surface. The populated array key depends on `type`.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                - $ref: '#/components/schemas/GoogleMapsResponse'
+                - $ref: '#/components/schemas/GoogleWebResponse'
+                - $ref: '#/components/schemas/GooglePlacesResponse'
+                - $ref: '#/components/schemas/GoogleNewsResponse'
+                - $ref: '#/components/schemas/GoogleShoppingResponse'
+                - $ref: '#/components/schemas/GoogleImagesResponse'
+                - $ref: '#/components/schemas/GoogleVideosResponse'
+                - $ref: '#/components/schemas/GoogleReviewsResponse'
+                - $ref: '#/components/schemas/GoogleScholarResponse'
+                - $ref: '#/components/schemas/GooglePatentsResponse'
+                - $ref: '#/components/schemas/GoogleAutocompleteResponse'
+                - $ref: '#/components/schemas/GoogleWebpageResponse'
+                - $ref: '#/components/schemas/GoogleLensResponse'
+        '400':
+          description: Missing or invalid parameter.
+        '401':
+          description: Missing or invalid API key.
+        '402':
+          description: Insufficient available balance or legacy credits. No successful result is charged when the operation cannot be funded.
+        '429':
+          description: Rate limited.
+        '502':
+          description: Upstream fetch failed (uncharged).
+        '503':
+          description: Surface temporarily unavailable, retry shortly (uncharged).
+      tags:
+      - Google
+components:
+  schemas:
+    GoogleImagesResponse:
+      type: object
+      description: Response for /v1/search?type=images. Field availability varies.
+      properties:
+        searchParameters:
+          description: Request parameters echoed for this operation. Fields vary by endpoint.
+          type:
+          - object
+          - 'null'
+          properties:
+            q:
+              description: Search query echoed in the response.
+              type:
+              - string
+              - 'null'
+            type:
+              description: Requested Google operation.
+              type:
+              - string
+              - 'null'
+            gl:
+              description: Country code echoed when applicable.
+              type:
+              - string
+              - 'null'
+            hl:
+              description: Language code echoed when applicable.
+              type:
+              - string
+              - 'null'
+            page:
+              description: Result page echoed when applicable.
+              type:
+              - integer
+              - 'null'
+            tbs:
+              description: Time or search filter echoed when applicable.
+              type:
+              - string
+              - 'null'
+            num:
+              description: Result count parameter echoed when applicable.
+              type:
+              - integer
+              - 'null'
+        images:
+          description: Image search results.
+          type:
+          - array
+          - 'null'
+          items:
+            type: object
+            properties:
+              title:
+                description: Result title.
+                type:
+                - string
+                - 'null'
+              imageUrl:
+                description: Image URL or inline data URL, when returned.
+                type:
+                - string
+                - 'null'
+              imageWidth:
+                description: Image width in pixels.
+                type:
+                - integer
+                - 'null'
+              imageHeight:
+                description: Image height in pixels.
+                type:
+                - integer
+                - 'null'
+              thumbnailUrl:
+                description: Thumbnail image URL, when available.
+                type:
+                - string
+                - 'null'
+              thumbnailWidth:
+                description: Thumbnail width in pixels.
+                type:
+                - integer
+                - 'null'
+              thumbnailHeight:
+                description: Thumbnail height in pixels.
+                type:
+                - integer
+                - 'null'
+              source:
+                description: Publisher, seller or source-site name.
+                type:
+                - string
+                - 'null'
+              domain:
+                description: Domain hosting the source page.
+                type:
+                - string
+                - 'null'
+              link:
+                description: Destination page URL.
+                type:
+                - string
+                - 'null'
+              googleUrl:
+                description: Google link associated with the image result.
+                type:
+                - string
+                - 'null'
+              position:
+                description: Position in the returned results.
+                type:
+                - integer
+                - 'null'
+              creator:
+                description: Published image creator, when available.
+                type:
+                - string
+                - 'null'
+              copyright:
+                description: Published copyright text, when available.
+                type:
+                - string
+                - 'null'
+        tookMs:
+          description: Request processing time in milliseconds.
+          type:
+          - integer
+          - 'null'
+        creditsRemaining:
+          description: Numeric balance compatibility value, not a USD amount. For wallet dollars use billing.remainingUsd.
+          type:
+          - integer
+          - 'null'
+        billing:
+          description: Wallet billing, when applicable.
+          type:
+          - object
+          - 'null'
+          properties:
+            model:
+              description: Billing model; wallet for wallet accounts.
+              type:
+              - string
+              - 'null'
+            currency:
+              description: Billing currency; USD.
+              type:
+              - string
+              - 'null'
+            chargedUsd:
+              description: Wallet charge for this request as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            remainingUsd:
+              description: Remaining wallet balance as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            units:
+              description: Successful billing units, not dollars.
+              type:
+              - integer
+              - 'null'
+            product:
+              description: Product used to determine the applicable rate.
+              type:
+              - string
+              - 'null'
+            debitId:
+              description: Usage debit identifier, when returned.
+              type:
+              - string
+              - 'null'
+            reason:
+              description: Billing reason, when returned.
+              type:
+              - string
+              - 'null'
+        cached:
+          description: True when the response reuses an identical recent search.
+          type:
+          - boolean
+          - 'null'
+        cacheAgeSeconds:
+          description: Age in seconds of a reused search result.
+          type:
+          - number
+          - 'null'
+    GooglePatentsResponse:
+      type: object
+      description: Response for /v1/search?type=patents. Field availability varies.
+      properties:
+        searchParameters:
+          description: Patent search parameters.
+          type:
+          - object
+          - 'null'
+          properties:
+            q:
+              description: Search query echoed in the response.
+              type:
+              - string
+              - 'null'
+            type:
+              description: Requested Google operation.
+              type:
+              - string
+              - 'null'
+        organic:
+          description: Patent search results.
+          type:
+          - array
+          - 'null'
+          items:
+            type: object
+            properties:
+              title:
+                description: Result title.
+                type:
+                - string
+                - 'null'
+              snippet:
+                description: Available summary or text excerpt.
+                type:
+                - string
+                - 'null'
+              link:
+                description: Destination page URL.
+                type:
+                - string
+                - 'null'
+              priorityDate:
+                description: Published patent priority date.
+                type:
+                - string
+                - 'null'
+              filingDate:
+                description: Published patent filing date.
+                type:
+                - string
+                - 'null'
+              grantDate:
+                description: Published patent grant date, when available.
+                type:
+                - string
+                - 'null'
+              publicationDate:
+                description: Published patent publication date.
+                type:
+                - string
+                - 'null'
+              inventor:
+                description: Published inventor name or names.
+                type:
+                - string
+                - 'null'
+              assignee:
+                description: Published patent assignee.
+                type:
+                - string
+                - 'null'
+              publicationNumber:
+                description: Patent publication number.
+                type:
+                - string
+                - 'null'
+              language:
+                description: Patent language code.
+                type:
+                - string
+                - 'null'
+              thumbnailUrl:
+                description: Thumbnail image URL, when available.
+                type:
+                - string
+                - 'null'
+              pdfUrl:
+                description: PDF link, when available.
+                type:
+                - string
+                - 'null'
+              figures:
+                description: Published patent figures.
+                type:
+                - array
+                - 'null'
+                items:
+                  type: object
+                  properties:
+                    imageUrl:
+                      description: Image URL or inline data URL, when returned.
+                      type:
+                      - string
+                      - 'null'
+                    thumbnailUrl:
+                      description: Thumbnail image URL, when available.
+                      type:
+                      - string
+                      - 'null'
+        tookMs:
+          description: Request processing time in milliseconds.
+          type:
+          - integer
+          - 'null'
+        creditsRemaining:
+          description: Numeric balance compatibility value, not a USD amount. For wallet dollars use billing.remainingUsd.
+          type:
+          - integer
+          - 'null'
+        billing:
+          description: Wallet billing, when applicable.
+          type:
+          - object
+          - 'null'
+          properties:
+            model:
+              description: Billing model; wallet for wallet accounts.
+              type:
+              - string
+              - 'null'
+            currency:
+              description: Billing currency; USD.
+              type:
+              - string
+              - 'null'
+            chargedUsd:
+              description: Wallet charge for this request as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            remainingUsd:
+              description: Remaining wallet balance as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            units:
+              description: Successful billing units, not dollars.
+              type:
+              - integer
+              - 'null'
+            product:
+              description: Product used to determine the applicable rate.
+              type:
+              - string
+              - 'null'
+            debitId:
+              description: Usage debit identifier, when returned.
+              type:
+              - string
+              - 'null'
+            reason:
+              description: Billing reason, when returned.
+              type:
+              - string
+              - 'null'
+    GoogleWebpageResponse:
+      type: object
+      description: Response for /v1/search?type=webpage. Field availability varies.
+      properties:
+        text:
+          description: Readable text extracted from the requested webpage.
+          type:
+          - string
+          - 'null'
+        markdown:
+          description: Page content as Markdown when includeMarkdown=true.
+          type:
+          - string
+          - 'null'
+        metadata:
+          description: Published page metadata. Keys depend on the page; the fields below are common examples.
+          type:
+          - object
+          - 'null'
+          properties:
+            title:
+              description: Result title.
+              type:
+              - string
+              - 'null'
+            description:
+              description: Published description, when available.
+              type:
+              - string
+              - 'null'
+            canonical:
+              description: Published canonical page URL, when available.
+              type:
+              - string
+              - 'null'
+            og:title:
+              description: Published Open Graph title, when available.
+              type:
+              - string
+              - 'null'
+            og:description:
+              description: Published Open Graph description, when available.
+              type:
+              - string
+              - 'null'
+            og:url:
+              description: Published Open Graph page URL, when available.
+              type:
+              - string
+              - 'null'
+            og:image:
+              description: Published Open Graph image URL, when available.
+              type:
+              - string
+              - 'null'
+        jsonld:
+          description: Published JSON-LD structured data. Its shape follows the page and can be null.
+        tookMs:
+          description: Request processing time in milliseconds.
+          type:
+          - integer
+          - 'null'
+        creditsRemaining:
+          description: Numeric balance compatibility value, not a USD amount. For wallet dollars use billing.remainingUsd.
+          type:
+          - integer
+          - 'null'
+        billing:
+          description: Wallet billing, when applicable.
+          type:
+          - object
+          - 'null'
+          properties:
+            model:
+              description: Billing model; wallet for wallet accounts.
+              type:
+              - string
+              - 'null'
+            currency:
+              description: Billing currency; USD.
+              type:
+              - string
+              - 'null'
+            chargedUsd:
+              description: Wallet charge for this request as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            remainingUsd:
+              description: Remaining wallet balance as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            units:
+              description: Successful billing units, not dollars.
+              type:
+              - integer
+              - 'null'
+            product:
+              description: Product used to determine the applicable rate.
+              type:
+              - string
+              - 'null'
+            debitId:
+              description: Usage debit identifier, when returned.
+              type:
+              - string
+              - 'null'
+            reason:
+              description: Billing reason, when returned.
+              type:
+              - string
+              - 'null'
+    GoogleShoppingResponse:
+      type: object
+      description: Response for /v1/search?type=shopping. Field availability varies.
+      properties:
+        searchParameters:
+          description: Request parameters echoed for this operation. Fields vary by endpoint.
+          type:
+          - object
+          - 'null'
+          properties:
+            q:
+              description: Search query echoed in the response.
+              type:
+              - string
+              - 'null'
+            type:
+              description: Requested Google operation.
+              type:
+              - string
+              - 'null'
+            gl:
+              description: Country code echoed when applicable.
+              type:
+              - string
+              - 'null'
+            hl:
+              description: Language code echoed when applicable.
+              type:
+              - string
+              - 'null'
+            page:
+              description: Result page echoed when applicable.
+              type:
+              - integer
+              - 'null'
+            tbs:
+              description: Time or search filter echoed when applicable.
+              type:
+              - string
+              - 'null'
+        shopping:
+          description: Product results.
+          type:
+          - array
+          - 'null'
+          items:
+            type: object
+            properties:
+              title:
+                description: Result title.
+                type:
+                - string
+                - 'null'
+              source:
+                description: Publisher, seller or source-site name.
+                type:
+                - string
+                - 'null'
+              condition:
+                description: Published product condition, when available.
+                type:
+                - string
+                - 'null'
+              link:
+                description: Destination page URL.
+                type:
+                - string
+                - 'null'
+              price:
+                description: Displayed price, including currency text when published.
+                type:
+                - string
+                - 'null'
+              imageUrl:
+                description: Image URL or inline data URL, when returned.
+                type:
+                - string
+                - 'null'
+              rating:
+                description: Average rating, when available.
+                type:
+                - number
+                - 'null'
+              ratingCount:
+                description: Number of ratings or reviews, when available.
+                type:
+                - integer
+                - 'null'
+              productId:
+                description: Product identifier, when available.
+                type:
+                - string
+                - 'null'
+              position:
+                description: Position in the returned results.
+                type:
+                - integer
+                - 'null'
+        tookMs:
+          description: Request processing time in milliseconds.
+          type:
+          - integer
+          - 'null'
+        creditsRemaining:
+          description: Numeric balance compatibility value, not a USD amount. For wallet dollars use billing.remainingUsd.
+          type:
+          - integer
+          - 'null'
+        billing:
+          description: Wallet billing, when applicable.
+          type:
+          - object
+          - 'null'
+          properties:
+            model:
+              description: Billing model; wallet for wallet accounts.
+              type:
+              - string
+              - 'null'
+            currency:
+              description: Billing currency; USD.
+              type:
+              - string
+              - 'null'
+            chargedUsd:
+              description: Wallet charge for this request as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            remainingUsd:
+              description: Remaining wallet balance as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            units:
+              description: Successful billing units, not dollars.
+              type:
+              - integer
+              - 'null'
+            product:
+              description: Product used to determine the applicable rate.
+              type:
+              - string
+              - 'null'
+            debitId:
+              description: Usage debit identifier, when returned.
+              type:
+              - string
+              - 'null'
+            reason:
+              description: Billing reason, when returned.
+              type:
+              - string
+              - 'null'
+        cached:
+          description: True when the response reuses an identical recent search.
+          type:
+          - boolean
+          - 'null'
+        cacheAgeSeconds:
+          description: Age in seconds of a reused search result.
+          type:
+          - number
+          - 'null'
+    GoogleNewsResponse:
+      type: object
+      description: Response for /v1/search?type=news. Field availability varies.
+      properties:
+        searchParameters:
+          description: Request parameters echoed for this operation. Fields vary by endpoint.
+          type:
+          - object
+          - 'null'
+          properties:
+            q:
+              description: Search query echoed in the response.
+              type:
+              - string
+              - 'null'
+            type:
+              description: Requested Google operation.
+              type:
+              - string
+              - 'null'
+            gl:
+              description: Country code echoed when applicable.
+              type:
+              - string
+              - 'null'
+            hl:
+              description: Language code echoed when applicable.
+              type:
+              - string
+              - 'null'
+            page:
+              description: Result page echoed when applicable.
+              type:
+              - integer
+              - 'null'
+            tbs:
+              description: Time or search filter echoed when applicable.
+              type:
+              - string
+              - 'null'
+        news:
+          description: News articles.
+          type:
+          - array
+          - 'null'
+          items:
+            type: object
+            properties:
+              title:
+                description: Result title.
+                type:
+                - string
+                - 'null'
+              link:
+                description: Destination page URL.
+                type:
+                - string
+                - 'null'
+              snippet:
+                description: Available summary or text excerpt.
+                type:
+                - string
+                - 'null'
+              date:
+                description: Published date or relative date text, when available.
+                type:
+                - string
+                - 'null'
+              source:
+                description: Publisher, seller or source-site name.
+                type:
+                - string
+                - 'null'
+              imageUrl:
+                description: Image URL or inline data URL, when returned.
+                type:
+                - string
+                - 'null'
+              googleNewsUrl:
+                description: Google News link for the article, when returned.
+                type:
+                - string
+                - 'null'
+              position:
+                description: Position in the returned results.
+                type:
+                - integer
+                - 'null'
+        tookMs:
+          description: Request processing time in milliseconds.
+          type:
+          - integer
+          - 'null'
+        creditsRemaining:
+          description: Numeric balance compatibility value, not a USD amount. For wallet dollars use billing.remainingUsd.
+          type:
+          - integer
+          - 'null'
+        billing:
+          description: Wallet billing, when applicable.
+          type:
+          - object
+          - 'null'
+          properties:
+            model:
+              description: Billing model; wallet for wallet accounts.
+              type:
+              - string
+              - 'null'
+            currency:
+              description: Billing currency; USD.
+              type:
+              - string
+              - 'null'
+            chargedUsd:
+              description: Wallet charge for this request as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            remainingUsd:
+              description: Remaining wallet balance as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            units:
+              description: Successful billing units, not dollars.
+              type:
+              - integer
+              - 'null'
+            product:
+              description: Product used to determine the applicable rate.
+              type:
+              - string
+              - 'null'
+            debitId:
+              description: Usage debit identifier, when returned.
+              type:
+              - string
+              - 'null'
+            reason:
+              description: Billing reason, when returned.
+              type:
+              - string
+              - 'null'
+        cached:
+          description: True when the response reuses an identical recent search.
+          type:
+          - boolean
+          - 'null'
+        cacheAgeSeconds:
+          description: Age in seconds of a reused search result.
+          type:
+          - number
+          - 'null'
+    GoogleMapsResponse:
+      type: object
+      description: Response for /v1/search?type=maps. Field availability varies.
+      properties:
+        query:
+          description: Search query.
+          type:
+          - string
+          - 'null'
+        ll:
+          description: Map location parameter, when returned.
+          type:
+          - string
+          - 'null'
+        count:
+          description: Number of returned businesses.
+          type:
+          - integer
+          - 'null'
+        places:
+          description: Google Maps business listings.
+          type:
+          - array
+          - 'null'
+          items:
+            type: object
+            properties:
+              position:
+                description: Business position in the returned results.
+                type:
+                - integer
+                - 'null'
+              title:
+                description: Business name.
+                type:
+                - string
+                - 'null'
+              placeId:
+                description: Google place identifier.
+                type:
+                - string
+                - 'null'
+              fid:
+                description: Google feature identifier.
+                type:
+                - string
+                - 'null'
+              cid:
+                description: Google customer identifier for the listing.
+                type:
+                - string
+                - 'null'
+              url:
+                description: Google Maps link for the listing.
+                type:
+                - string
+                - 'null'
+              address:
+                description: Formatted business address.
+                type:
+                - string
+                - 'null'
+              street:
+                description: Street address, when available.
+                type:
+                - string
+                - 'null'
+              city:
+                description: City name, when available.
+                type:
+                - string
+                - 'null'
+              state:
+                description: State or region, when available.
+                type:
+                - string
+                - 'null'
+              postalCode:
+                description: Postal or ZIP code, when available.
+                type:
+                - string
+                - 'null'
+              countryCode:
+                description: Two-letter country code, when available.
+                type:
+                - string
+                - 'null'
+              location:
+                description: Coordinates as an object containing `lat` and `lng`.
+                type:
+                - object
+                - 'null'
+                properties:
+                  lat:
+                    description: Latitude coordinate.
+                    type:
+                    - number
+                    - 'null'
+                  lng:
+                    description: Longitude coordinate.
+                    type:
+                    - number
+                    - 'null'
+              phone:
+                description: Published phone number in local format.
+                type:
+                - string
+                - 'null'
+              phoneUnformatted:
+                description: Published phone number with country code, when available.
+                type:
+                - string
+                - 'null'
+              website:
+                description: Published website URL, when available.
+                type:
+                - string
+                - 'null'
+              categoryName:
+                description: Primary business category.
+                type:
+                - string
+                - 'null'
+              categories:
+                description: Available business categories.
+                type:
+                - array
+                - 'null'
+                items:
+                  type: string
+              totalScore:
+                description: Average star rating, when available.
+                type:
+                - number
+                - 'null'
+              reviewsCount:
+                description: Total review count, when available.
+                type:
+                - integer
+                - 'null'
+              priceLevel:
+                description: Published price range or level, when available.
+                type:
+                - string
+                - 'null'
+              reviewsDistribution:
+                description: Counts from `oneStar` through `fiveStar` with `stars=true` (alias `details=true`), when available. This option can increase response time.
+                type:
+                - object
+                - 'null'
+                properties:
+                  oneStar:
+                    description: 1-star review count.
+                    type:
+                    - integer
+                    - 'null'
+                  twoStar:
+                    description: 2-star review count.
+                    type:
+                    - integer
+                    - 'null'
+                  threeStar:
+                    description: 3-star review count.
+                    type:
+                    - integer
+                    - 'null'
+                  fourStar:
+                    description: 4-star review count.
+                    type:
+                    - integer
+                    - 'null'
+                  fiveStar:
+                    description: 5-star review count.
+                    type:
+                    - integer
+                    - 'null'
+              description:
+                description: Published listing description, when available.
+                type:
+                - string
+                - 'null'
+              openingHours:
+                description: Published opening hours by day.
+                type:
+                - object
+                - 'null'
+                properties:
+                  Monday:
+                    description: Published Monday opening hours.
+                    type:
+                    - string
+                    - 'null'
+                  Tuesday:
+                    description: Published Tuesday opening hours.
+                    type:
+                    - string
+                    - 'null'
+                  Wednesday:
+                    description: Published Wednesday opening hours.
+                    type:
+                    - string
+                    - 'null'
+                  Thursday:
+                    description: Published Thursday opening hours.
+                    type:
+                    - string
+                    - 'null'
+                  Friday:
+                    description: Published Friday opening hours.
+                    type:
+                    - string
+                    - 'null'
+                  Saturday:
+                    description: Published Saturday opening hours.
+                    type:
+                    - string
+                    - 'null'
+                  Sunday:
+                    description: Published Sunday opening hours.
+                    type:
+                    - string
+                    - 'null'
+              permanentlyClosed:
+                description: Permanent-closure flag when returned.
+                type:
+                - boolean
+                - 'null'
+              mainImage:
+                description: Lead listing image URL, when available.
+                type:
+                - string
+                - 'null'
+              thumbnailUrl:
+                description: Listing thumbnail URL, when available.
+                type:
+                - string
+                - 'null'
+              bookingLinks:
+                description: Available booking links.
+                type:
+                - array
+                - 'null'
+                items:
+                  type: string
+              attributes:
+                description: Available business attributes.
+                type:
+                - object
+                - 'null'
+              scrapedAt:
+                description: Collection timestamp for the listing.
+                type:
+                - string
+                - 'null'
+        tookMs:
+          description: Request processing time in milliseconds.
+          type:
+          - integer
+          - 'null'
+        creditsRemaining:
+          description: Numeric balance compatibility value, not a USD amount. For wallet dollars use billing.remainingUsd.
+          type:
+          - integer
+          - 'null'
+        billing:
+          description: Wallet billing, when applicable.
+          type:
+          - object
+          - 'null'
+          properties:
+            model:
+              description: Billing model; wallet for wallet accounts.
+              type:
+              - string
+              - 'null'
+            currency:
+              description: Billing currency; USD.
+              type:
+              - string
+              - 'null'
+            chargedUsd:
+              description: Wallet charge for this request as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            remainingUsd:
+              description: Remaining wallet balance as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            units:
+              description: Successful billing units, not dollars.
+              type:
+              - integer
+              - 'null'
+            product:
+              description: Product used to determine the applicable rate.
+              type:
+              - string
+              - 'null'
+            debitId:
+              description: Usage debit identifier, when returned.
+              type:
+              - string
+              - 'null'
+            reason:
+              description: Billing reason, when returned.
+              type:
+              - string
+              - 'null'
+    GoogleWebResponse:
+      type: object
+      description: Response for /v1/search?type=web. Field availability varies.
+      properties:
+        searchParameters:
+          description: Request parameters echoed for this operation. Fields vary by endpoint.
+          type:
+          - object
+          - 'null'
+          properties:
+            q:
+              description: Search query echoed in the response.
+              type:
+              - string
+              - 'null'
+            type:
+              description: Requested Google operation.
+              type:
+              - string
+              - 'null'
+            gl:
+              description: Country code echoed when applicable.
+              type:
+              - string
+              - 'null'
+            hl:
+              description: Language code echoed when applicable.
+              type:
+              - string
+              - 'null'
+            page:
+              description: Result page echoed when applicable.
+              type:
+              - integer
+              - 'null'
+            tbs:
+              description: Time or search filter echoed when applicable.
+              type:
+              - string
+              - 'null'
+        organic:
+          description: Web search results.
+          type:
+          - array
+          - 'null'
+          items:
+            type: object
+            properties:
+              title:
+                description: Result title.
+                type:
+                - string
+                - 'null'
+              link:
+                description: Destination page URL.
+                type:
+                - string
+                - 'null'
+              snippet:
+                description: Available summary or text excerpt.
+                type:
+                - string
+                - 'null'
+              date:
+                description: Published date or relative date text, when available.
+                type:
+                - string
+                - 'null'
+              position:
+                description: Position in the returned results.
+                type:
+                - integer
+                - 'null'
+              attributes:
+                description: Additional published result attributes. Keys vary.
+                type:
+                - object
+                - 'null'
+              sitelinks:
+                description: Additional links beneath a search result.
+                type:
+                - array
+                - 'null'
+                items:
+                  type: object
+                  properties:
+                    title:
+                      description: Result title.
+                      type:
+                      - string
+                      - 'null'
+                    link:
+                      description: Destination page URL.
+                      type:
+                      - string
+                      - 'null'
+        knowledgeGraph:
+          description: Knowledge panel, when one is returned.
+          type:
+          - object
+          - 'null'
+          properties:
+            title:
+              description: Result title.
+              type:
+              - string
+              - 'null'
+            type:
+              description: Entity type or category.
+              type:
+              - string
+              - 'null'
+            imageUrl:
+              description: Image URL or inline data URL, when returned.
+              type:
+              - string
+              - 'null'
+            description:
+              description: Published description, when available.
+              type:
+              - string
+              - 'null'
+            descriptionSource:
+              description: Source named for the knowledge-panel description.
+              type:
+              - string
+              - 'null'
+            descriptionLink:
+              description: Link supporting the knowledge-panel description.
+              type:
+              - string
+              - 'null'
+            website:
+              description: Published website URL, when available.
+              type:
+              - string
+              - 'null'
+            attributes:
+              description: Additional attributes. Keys vary by result.
+              type:
+              - object
+              - 'null'
+        peopleAlsoAsk:
+          description: Related questions, with answer details when available.
+          type:
+          - array
+          - 'null'
+          items:
+            type: object
+            properties:
+              question:
+                description: Related question text.
+                type:
+                - string
+                - 'null'
+              snippet:
+                description: Available summary or text excerpt.
+                type:
+                - string
+                - 'null'
+              title:
+                description: Result title.
+                type:
+                - string
+                - 'null'
+              link:
+                description: Destination page URL.
+                type:
+                - string
+                - 'null'
+        relatedSearches:
+          description: Related search phrases.
+          type:
+          - array
+          - 'null'
+          items:
+            type: object
+            properties:
+              query:
+                description: Search query.
+                type:
+                - string
+                - 'null'
+        tookMs:
+          description: Request processing time in milliseconds.
+          type:
+          - integer
+          - 'null'
+        creditsRemaining:
+          description: Numeric balance compatibility value, not a USD amount. For wallet dollars use billing.remainingUsd.
+          type:
+          - integer
+          - 'null'
+        billing:
+          description: Wallet billing, when applicable.
+          type:
+          - object
+          - 'null'
+          properties:
+            model:
+              description: Billing model; wallet for wallet accounts.
+              type:
+              - string
+              - 'null'
+            currency:
+              description: Billing currency; USD.
+              type:
+              - string
+              - 'null'
+            chargedUsd:
+              description: Wallet charge for this request as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            remainingUsd:
+              description: Remaining wallet balance as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            units:
+              description: Successful billing units, not dollars.
+              type:
+              - integer
+              - 'null'
+            product:
+              description: Product used to determine the applicable rate.
+              type:
+              - string
+              - 'null'
+            debitId:
+              description: Usage debit identifier, when returned.
+              type:
+              - string
+              - 'null'
+            reason:
+              description: Billing reason, when returned.
+              type:
+              - string
+              - 'null'
+        cached:
+          description: True when the response reuses an identical recent search.
+          type:
+          - boolean
+          - 'null'
+        cacheAgeSeconds:
+          description: Age in seconds of a reused search result.
+          type:
+          - number
+          - 'null'
+    GooglePlacesResponse:
+      type: object
+      description: Response for /v1/search?type=places. Field availability varies.
+      properties:
+        searchParameters:
+          description: Request parameters echoed for this operation. Fields vary by endpoint.
+          type:
+          - object
+          - 'null'
+          properties:
+            q:
+              description: Search query echoed in the response.
+              type:
+              - string
+              - 'null'
+            type:
+              description: Requested Google operation.
+              type:
+              - string
+              - 'null'
+            gl:
+              description: Country code echoed when applicable.
+              type:
+              - string
+              - 'null'
+            hl:
+              description: Language code echoed when applicable.
+              type:
+              - string
+              - 'null'
+            num:
+              description: Result count parameter echoed when applicable.
+              type:
+              - integer
+              - 'null'
+            page:
+              description: Result page echoed when applicable.
+              type:
+              - integer
+              - 'null'
+        places:
+          description: Compact local place results.
+          type:
+          - array
+          - 'null'
+          items:
+            type: object
+            properties:
+              position:
+                description: Position in the returned results.
+                type:
+                - integer
+                - 'null'
+              title:
+                description: Place or business name.
+                type:
+                - string
+                - 'null'
+              address:
+                description: Formatted place address.
+                type:
+                - string
+                - 'null'
+              latitude:
+                description: Latitude coordinate.
+                type:
+                - number
+                - 'null'
+              longitude:
+                description: Longitude coordinate.
+                type:
+                - number
+                - 'null'
+              rating:
+                description: Average rating, when available.
+                type:
+                - number
+                - 'null'
+              ratingCount:
+                description: Number of ratings or reviews, when available.
+                type:
+                - integer
+                - 'null'
+              priceLevel:
+                description: Published price range or level, when available.
+                type:
+                - string
+                - 'null'
+              category:
+                description: Primary place category.
+                type:
+                - string
+                - 'null'
+              phoneNumber:
+                description: Published local phone number, when available.
+                type:
+                - string
+                - 'null'
+              website:
+                description: Published website URL, when available.
+                type:
+                - string
+                - 'null'
+              cid:
+                description: Google customer identifier for the listing.
+                type:
+                - string
+                - 'null'
+        tookMs:
+          description: Request processing time in milliseconds.
+          type:
+          - integer
+          - 'null'
+        creditsRemaining:
+          description: Numeric balance compatibility value, not a USD amount. For wallet dollars use billing.remainingUsd.
+          type:
+          - integer
+          - 'null'
+        billing:
+          description: Wallet billing, when applicable.
+          type:
+          - object
+          - 'null'
+          properties:
+            model:
+              description: Billing model; wallet for wallet accounts.
+              type:
+              - string
+              - 'null'
+            currency:
+              description: Billing currency; USD.
+              type:
+              - string
+              - 'null'
+            chargedUsd:
+              description: Wallet charge for this request as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            remainingUsd:
+              description: Remaining wallet balance as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            units:
+              description: Successful billing units, not dollars.
+              type:
+              - integer
+              - 'null'
+            product:
+              description: Product used to determine the applicable rate.
+              type:
+              - string
+              - 'null'
+            debitId:
+              description: Usage debit identifier, when returned.
+              type:
+              - string
+              - 'null'
+            reason:
+              description: Billing reason, when returned.
+              type:
+              - string
+              - 'null'
+    GoogleVideosResponse:
+      type: object
+      description: Response for /v1/search?type=videos. Field availability varies.
+      properties:
+        searchParameters:
+          description: Request parameters echoed for this operation. Fields vary by endpoint.
+          type:
+          - object
+          - 'null'
+          properties:
+            q:
+              description: Search query echoed in the response.
+              type:
+              - string
+              - 'null'
+            type:
+              description: Requested Google operation.
+              type:
+              - string
+              - 'null'
+            gl:
+              description: Country code echoed when applicable.
+              type:
+              - string
+              - 'null'
+            hl:
+              description: Language code echoed when applicable.
+              type:
+              - string
+              - 'null'
+            page:
+              description: Result page echoed when applicable.
+              type:
+              - integer
+              - 'null'
+            tbs:
+              description: Time or search filter echoed when applicable.
+              type:
+              - string
+              - 'null'
+        videos:
+          description: Video search results.
+          type:
+          - array
+          - 'null'
+          items:
+            type: object
+            properties:
+              title:
+                description: Result title.
+                type:
+                - string
+                - 'null'
+              link:
+                description: Destination page URL.
+                type:
+                - string
+                - 'null'
+              videoUrl:
+                description: Video URL, when returned.
+                type:
+                - string
+                - 'null'
+              snippet:
+                description: Available summary or text excerpt.
+                type:
+                - string
+                - 'null'
+              imageUrl:
+                description: Image URL or inline data URL, when returned.
+                type:
+                - string
+                - 'null'
+              duration:
+                description: Displayed video duration, when available.
+                type:
+                - string
+                - 'null'
+              source:
+                description: Publisher, seller or source-site name.
+                type:
+                - string
+                - 'null'
+              channel:
+                description: Published video channel or account name.
+                type:
+                - string
+                - 'null'
+              date:
+                description: Published date or relative date text, when available.
+                type:
+                - string
+                - 'null'
+              position:
+                description: Position in the returned results.
+                type:
+                - integer
+                - 'null'
+        tookMs:
+          description: Request processing time in milliseconds.
+          type:
+          - integer
+          - 'null'
+        creditsRemaining:
+          description: Numeric balance compatibility value, not a USD amount. For wallet dollars use billing.remainingUsd.
+          type:
+          - integer
+          - 'null'
+        billing:
+          description: Wallet billing, when applicable.
+          type:
+          - object
+          - 'null'
+          properties:
+            model:
+              description: Billing model; wallet for wallet accounts.
+              type:
+              - string
+              - 'null'
+            currency:
+              description: Billing currency; USD.
+              type:
+              - string
+              - 'null'
+            chargedUsd:
+              description: Wallet charge for this request as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            remainingUsd:
+              description: Remaining wallet balance as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            units:
+              description: Successful billing units, not dollars.
+              type:
+              - integer
+              - 'null'
+            product:
+              description: Product used to determine the applicable rate.
+              type:
+              - string
+              - 'null'
+            debitId:
+              description: Usage debit identifier, when returned.
+              type:
+              - string
+              - 'null'
+            reason:
+              description: Billing reason, when returned.
+              type:
+              - string
+              - 'null'
+        cached:
+          description: True when the response reuses an identical recent search.
+          type:
+          - boolean
+          - 'null'
+        cacheAgeSeconds:
+          description: Age in seconds of a reused search result.
+          type:
+          - number
+          - 'null'
+    GoogleScholarResponse:
+      type: object
+      description: Response for /v1/search?type=scholar. Field availability varies.
+      properties:
+        searchParameters:
+          description: Request parameters echoed for this operation. Fields vary by endpoint.
+          type:
+          - object
+          - 'null'
+          properties:
+            q:
+              description: Search query echoed in the response.
+              type:
+              - string
+              - 'null'
+            type:
+              description: Requested Google operation.
+              type:
+              - string
+              - 'null'
+            gl:
+              description: Country code echoed when applicable.
+              type:
+              - string
+              - 'null'
+            hl:
+              description: Language code echoed when applicable.
+              type:
+              - string
+              - 'null'
+            page:
+              description: Result page echoed when applicable.
+              type:
+              - integer
+              - 'null'
+            tbs:
+              description: Time or search filter echoed when applicable.
+              type:
+              - string
+              - 'null'
+        organic:
+          description: Academic search results.
+          type:
+          - array
+          - 'null'
+          items:
+            type: object
+            properties:
+              title:
+                description: Result title.
+                type:
+                - string
+                - 'null'
+              link:
+                description: Destination page URL.
+                type:
+                - string
+                - 'null'
+              publicationInfo:
+                description: Publication and author information as displayed.
+                type:
+                - string
+                - 'null'
+              snippet:
+                description: Available summary or text excerpt.
+                type:
+                - string
+                - 'null'
+              year:
+                description: Publication year, when available.
+                type:
+                - integer
+                - 'null'
+              citedBy:
+                description: Reported citation count, when available.
+                type:
+                - integer
+                - 'null'
+              pdfUrl:
+                description: PDF link, when available.
+                type:
+                - string
+                - 'null'
+              htmlUrl:
+                description: HTML full-text link, when available.
+                type:
+                - string
+                - 'null'
+              id:
+                description: Result identifier.
+                type:
+                - string
+                - 'null'
+              position:
+                description: Position in the returned results.
+                type:
+                - integer
+                - 'null'
+        tookMs:
+          description: Request processing time in milliseconds.
+          type:
+          - integer
+          - 'null'
+        creditsRemaining:
+          description: Numeric balance compatibility value, not a USD amount. For wallet dollars use billing.remainingUsd.
+          type:
+          - integer
+          - 'null'
+        billing:
+          description: Wallet billing, when applicable.
+          type:
+          - object
+          - 'null'
+          properties:
+            model:
+              description: Billing model; wallet for wallet accounts.
+              type:
+              - string
+              - 'null'
+            currency:
+              description: Billing currency; USD.
+              type:
+              - string
+              - 'null'
+            chargedUsd:
+              description: Wallet charge for this request as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            remainingUsd:
+              description: Remaining wallet balance as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            units:
+              description: Successful billing units, not dollars.
+              type:
+              - integer
+              - 'null'
+            product:
+              description: Product used to determine the applicable rate.
+              type:
+              - string
+              - 'null'
+            debitId:
+              description: Usage debit identifier, when returned.
+              type:
+              - string
+              - 'null'
+            reason:
+              description: Billing reason, when returned.
+              type:
+              - string
+              - 'null'
+        cached:
+          description: True when the response reuses an identical recent search.
+          type:
+          - boolean
+          - 'null'
+        cacheAgeSeconds:
+          description: Age in seconds of a reused search result.
+          type:
+          - number
+          - 'null'
+    GoogleReviewsResponse:
+      type: object
+      description: Response for /v1/search?type=reviews. Field availability varies.
+      properties:
+        searchParameters:
+          description: Request parameters echoed for this operation. Fields vary by endpoint.
+          type:
+          - object
+          - 'null'
+          properties:
+            q:
+              description: Search query echoed in the response.
+              type:
+              - string
+              - 'null'
+            type:
+              description: Requested Google operation.
+              type:
+              - string
+              - 'null'
+            placeId:
+              description: Google place identifier.
+              type:
+              - string
+              - 'null'
+            cid:
+              description: Google customer identifier for the listing.
+              type:
+              - string
+              - 'null'
+            fid:
+              description: Google feature identifier.
+              type:
+              - string
+              - 'null'
+            gl:
+              description: Country code echoed when applicable.
+              type:
+              - string
+              - 'null'
+            hl:
+              description: Language code echoed when applicable.
+              type:
+              - string
+              - 'null'
+        reviews:
+          description: Business reviews.
+          type:
+          - array
+          - 'null'
+          items:
+            type: object
+            properties:
+              rating:
+                description: Review star rating.
+                type:
+                - integer
+                - 'null'
+              date:
+                description: Relative review date text.
+                type:
+                - string
+                - 'null'
+              isoDate:
+                description: Review date as an ISO timestamp, when available.
+                type:
+                - string
+                - 'null'
+              snippet:
+                description: Review text.
+                type:
+                - string
+                - 'null'
+              likes:
+                description: Total reactions on the review.
+                type:
+                - integer
+                - 'null'
+              link:
+                description: Destination page URL.
+                type:
+                - string
+                - 'null'
+              id:
+                description: Review identifier.
+                type:
+                - string
+                - 'null'
+              user:
+                description: Published reviewer details.
+                type:
+                - object
+                - 'null'
+                properties:
+                  name:
+                    description: Published display name.
+                    type:
+                    - string
+                    - 'null'
+                  thumbnail:
+                    description: Public reviewer image URL, when available.
+                    type:
+                    - string
+                    - 'null'
+                  link:
+                    description: Reviewer’s public Google Maps profile URL.
+                    type:
+                    - string
+                    - 'null'
+                  reviews:
+                    description: Reviewer’s published review count.
+                    type:
+                    - integer
+                    - 'null'
+                  photos:
+                    description: Reviewer’s published photo count.
+                    type:
+                    - integer
+                    - 'null'
+              media:
+                description: Review media, when present.
+                type:
+                - array
+                - 'null'
+                items:
+                  type: object
+                  properties:
+                    type:
+                      description: Media type, such as image.
+                      type:
+                      - string
+                      - 'null'
+                    imageUrl:
+                      description: Image URL or inline data URL, when returned.
+                      type:
+                      - string
+                      - 'null'
+                    caption:
+                      description: Published image caption, when available.
+                      type:
+                      - string
+                      - 'null'
+              response:
+                description: Business owner’s reply, when present.
+                type:
+                - object
+                - 'null'
+                properties:
+                  date:
+                    description: Relative date of the owner’s reply.
+                    type:
+                    - string
+                    - 'null'
+                  snippet:
+                    description: Owner’s reply text.
+                    type:
+                    - string
+                    - 'null'
+        nextPageToken:
+          description: Cursor for the next reviews page, when returned. Send it as nextPageToken in the next request.
+          type:
+          - string
+          - 'null'
+        tookMs:
+          description: Request processing time in milliseconds.
+          type:
+          - integer
+          - 'null'
+        creditsRemaining:
+          description: Numeric balance compatibility value, not a USD amount. For wallet dollars use billing.remainingUsd.
+          type:
+          - integer
+          - 'null'
+        billing:
+          description: Wallet billing, when applicable.
+          type:
+          - object
+          - 'null'
+          properties:
+            model:
+              description: Billing model; wallet for wallet accounts.
+              type:
+              - string
+              - 'null'
+            currency:
+              description: Billing currency; USD.
+              type:
+              - string
+              - 'null'
+            chargedUsd:
+              description: Wallet charge for this request as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            remainingUsd:
+              description: Remaining wallet balance as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            units:
+              description: Successful billing units, not dollars.
+              type:
+              - integer
+              - 'null'
+            product:
+              description: Product used to determine the applicable rate.
+              type:
+              - string
+              - 'null'
+            debitId:
+              description: Usage debit identifier, when returned.
+              type:
+              - string
+              - 'null'
+            reason:
+              description: Billing reason, when returned.
+              type:
+              - string
+              - 'null'
+    GoogleAutocompleteResponse:
+      type: object
+      description: Response for /v1/search?type=autocomplete. Field availability varies.
+      properties:
+        searchParameters:
+          description: Request parameters echoed for this operation. Fields vary by endpoint.
+          type:
+          - object
+          - 'null'
+          properties:
+            q:
+              description: Search query echoed in the response.
+              type:
+              - string
+              - 'null'
+            type:
+              description: Requested Google operation.
+              type:
+              - string
+              - 'null'
+            gl:
+              description: Country code echoed when applicable.
+              type:
+              - string
+              - 'null'
+            hl:
+              description: Language code echoed when applicable.
+              type:
+              - string
+              - 'null'
+        suggestions:
+          description: Suggested completions for the query.
+          type:
+          - array
+          - 'null'
+          items:
+            type: object
+            properties:
+              value:
+                description: Suggested search text.
+                type:
+                - string
+                - 'null'
+        tookMs:
+          description: Request processing time in milliseconds.
+          type:
+          - integer
+          - 'null'
+        creditsRemaining:
+          description: Numeric balance compatibility value, not a USD amount. For wallet dollars use billing.remainingUsd.
+          type:
+          - integer
+          - 'null'
+        billing:
+          description: Wallet billing, when applicable.
+          type:
+          - object
+          - 'null'
+          properties:
+            model:
+              description: Billing model; wallet for wallet accounts.
+              type:
+              - string
+              - 'null'
+            currency:
+              description: Billing currency; USD.
+              type:
+              - string
+              - 'null'
+            chargedUsd:
+              description: Wallet charge for this request as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            remainingUsd:
+              description: Remaining wallet balance as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            units:
+              description: Successful billing units, not dollars.
+              type:
+              - integer
+              - 'null'
+            product:
+              description: Product used to determine the applicable rate.
+              type:
+              - string
+              - 'null'
+            debitId:
+              description: Usage debit identifier, when returned.
+              type:
+              - string
+              - 'null'
+            reason:
+              description: Billing reason, when returned.
+              type:
+              - string
+              - 'null'
+    GoogleLensResponse:
+      type: object
+      description: Response for /v1/search?type=lens. Field availability varies.
+      properties:
+        searchParameters:
+          description: Parameters for the image search.
+          type:
+          - object
+          - 'null'
+          properties:
+            q:
+              description: Image URL used for the search.
+              type:
+              - string
+              - 'null'
+            type:
+              description: Requested Google operation.
+              type:
+              - string
+              - 'null'
+        organic:
+          description: Visual matches for the supplied image.
+          type:
+          - array
+          - 'null'
+          items:
+            type: object
+            properties:
+              title:
+                description: Result title.
+                type:
+                - string
+                - 'null'
+              source:
+                description: Publisher, seller or source-site name.
+                type:
+                - string
+                - 'null'
+              link:
+                description: Destination page URL.
+                type:
+                - string
+                - 'null'
+              imageUrl:
+                description: Image URL or inline data URL, when returned.
+                type:
+                - string
+                - 'null'
+              thumbnailUrl:
+                description: Thumbnail image URL, when available.
+                type:
+                - string
+                - 'null'
+              position:
+                description: Position in the returned results.
+                type:
+                - integer
+                - 'null'
+        tookMs:
+          description: Request processing time in milliseconds.
+          type:
+          - integer
+          - 'null'
+        creditsRemaining:
+          description: Numeric balance compatibility value, not a USD amount. For wallet dollars use billing.remainingUsd.
+          type:
+          - integer
+          - 'null'
+        billing:
+          description: Wallet billing, when applicable.
+          type:
+          - object
+          - 'null'
+          properties:
+            model:
+              description: Billing model; wallet for wallet accounts.
+              type:
+              - string
+              - 'null'
+            currency:
+              description: Billing currency; USD.
+              type:
+              - string
+              - 'null'
+            chargedUsd:
+              description: Wallet charge for this request as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            remainingUsd:
+              description: Remaining wallet balance as a decimal USD string.
+              type:
+              - string
+              - 'null'
+            units:
+              description: Successful billing units, not dollars.
+              type:
+              - integer
+              - 'null'
+            product:
+              description: Product used to determine the applicable rate.
+              type:
+              - string
+              - 'null'
+            debitId:
+              description: Usage debit identifier, when returned.
+              type:
+              - string
+              - 'null'
+            reason:
+              description: Billing reason, when returned.
+              type:
+              - string
+              - 'null'
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key

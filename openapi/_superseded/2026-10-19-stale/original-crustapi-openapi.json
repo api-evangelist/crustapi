@@ -1,0 +1,1288 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "CrustAPI",
+    "version": "2.0.0",
+    "description": "Self-scraped Google and public LinkedIn data as a clean JSON API. One endpoint returns a stable, serper-compatible shape for every Google surface: Web Search, Maps, Places, News, Shopping, Images, Videos, Reviews, Scholar, Patents, Autocomplete, and Webpage scrape. Choose a surface with `type`. A second endpoint returns public LinkedIn profiles, companies, posts, jobs, and people search. Billed on success with never-expiring, top-up credits: 1 credit per successful query for every type (Maps bills 1 credit per business returned); empty results are free."
+  },
+  "servers": [
+    {
+      "url": "https://crustapi.com"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "paths": {
+    "/v1/search": {
+      "get": {
+        "operationId": "search",
+        "summary": "Query any Google surface",
+        "description": "One endpoint for the whole Google menu. Set `type` to choose the surface (default `web`). Each type returns a serper-compatible shape under its own key: web/scholar/patents/lens -> `organic`; news -> `news`; shopping -> `shopping`; images -> `images`; videos -> `videos`; maps/places -> `places`; reviews -> `reviews`; autocomplete -> `suggestions`; webpage -> `text` + `metadata` + `jsonld`. Billed 1 credit per successful query (Maps bills 1 credit per business returned). Blocked/empty rides are free.",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "description": "Which Google surface to query.",
+            "schema": {
+              "type": "string",
+              "default": "web",
+              "enum": [
+                "web",
+                "maps",
+                "places",
+                "news",
+                "shopping",
+                "images",
+                "videos",
+                "reviews",
+                "scholar",
+                "patents",
+                "autocomplete",
+                "webpage",
+                "lens"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "description": "The search query. Required for every type EXCEPT webpage and lens (use `url`) and reviews (use `placeId` / `cid` / `fid`).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "description": "type=webpage: the page URL to scrape. type=lens: the image URL for reverse image search.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "gl",
+            "in": "query",
+            "required": false,
+            "description": "Country code (us, gb, de, ...). Not used by maps, patents, or webpage.",
+            "schema": {
+              "type": "string",
+              "default": "us"
+            }
+          },
+          {
+            "name": "hl",
+            "in": "query",
+            "required": false,
+            "description": "Language code (en, es, ...). Not used by patents or webpage.",
+            "schema": {
+              "type": "string",
+              "default": "en"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Result page. Not used by reviews, autocomplete, webpage, or lens.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "tbs",
+            "in": "query",
+            "required": false,
+            "description": "Time filter for web/news/images/videos (e.g. qdr:h past hour, qdr:d past day, qdr:w past week, qdr:m past month, qdr:y past year).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "num",
+            "in": "query",
+            "required": false,
+            "description": "type=reviews: reviews per page (default 20, max 50).",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "ll",
+            "in": "query",
+            "required": false,
+            "description": "type=maps: GPS position and zoom as @latitude,longitude,zoom.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "placeId",
+            "in": "query",
+            "required": false,
+            "description": "Google place id (ChIJ...). Optional for maps; identifies the place for reviews.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cid",
+            "in": "query",
+            "required": false,
+            "description": "Google customer id. Optional for maps; identifies the place for reviews.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fid",
+            "in": "query",
+            "required": false,
+            "description": "Google feature id (0x..:0x..). Identifies the place for reviews.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "required": false,
+            "description": "type=reviews: review sort order.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "mostRelevant",
+                "newest",
+                "highest",
+                "lowest"
+              ],
+              "default": "mostRelevant"
+            }
+          },
+          {
+            "name": "nextPageToken",
+            "in": "query",
+            "required": false,
+            "description": "type=reviews: cursor from the previous response to fetch the next page of reviews.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeMarkdown",
+            "in": "query",
+            "required": false,
+            "description": "type=webpage: also return the page rendered as Markdown.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "description": "City/region hint for web and places.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "type=maps only: how many businesses to return (1-100). Each is one credit.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "stars",
+            "in": "query",
+            "required": false,
+            "description": "type=maps: include the 1-5 star rating distribution per place.",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Results for the chosen surface. The populated array key depends on `type`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid parameter."
+          },
+          "401": {
+            "description": "Missing or invalid API key."
+          },
+          "402": {
+            "description": "Out of credits."
+          },
+          "429": {
+            "description": "Rate limited."
+          },
+          "502": {
+            "description": "Upstream fetch failed (uncharged)."
+          },
+          "503": {
+            "description": "Surface temporarily unavailable, retry shortly (uncharged)."
+          }
+        }
+      }
+    },
+    "/v1/linkedin": {
+      "get": {
+        "operationId": "linkedin",
+        "summary": "Public LinkedIn data",
+        "description": "Public (logged-out) LinkedIn data. Set `type` to choose what you get (default `profile`). profile/company/posts need `url`; jobs takes `keywords` (plus optional `location`) or a job `url`; search (people search) needs `keywords`. The data comes back under a key named after the type: `profile` and `company` are objects, `posts`, `jobs`, and `people` (for type=search) are arrays. Billed 1 credit per successful call. Exception: people search with `enrich=true` bills 1 credit per full profile returned. Empty results are free. A private or empty profile returns 200 with null plus a note and is not charged.",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "description": "What to fetch. Singular gets the one you point at, plural finds many: person (one profile by URL) / people (find people by keywords) / company / job (one job by URL) / jobs (find jobs by keywords) / posts / refresh (fast freshness check). `profile` and `search` are the previous names for person and people and keep working unchanged.",
+            "schema": {
+              "type": "string",
+              "default": "person",
+              "enum": [
+                "person",
+                "people",
+                "company",
+                "job",
+                "jobs",
+                "posts",
+                "refresh",
+                "profile",
+                "search"
+              ]
+            }
+          },
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "description": "A linkedin.com URL. Required for profile (linkedin.com/in/...), company (linkedin.com/company/...), and posts (either). jobs also accepts a job URL instead of keywords.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "keywords",
+            "in": "query",
+            "required": false,
+            "description": "What to search for. Required for type=search; required for type=jobs unless you pass a job `url`.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "description": "type=jobs: city/region filter for the job search.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "required": false,
+            "description": "type=jobs: result offset for paging.",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "How many results to return. jobs: default 25, max 50. posts: default 50, max 100. search: default 10, max 15.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "enrich",
+            "in": "query",
+            "required": false,
+            "description": "type=search: return each person's FULL profile in the same call. Bills 1 credit per full profile returned instead of 1 per call.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "employees",
+            "in": "query",
+            "required": false,
+            "description": "type=company: include the employee list.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "comments",
+            "in": "query",
+            "required": false,
+            "description": "type=posts: include comments on each post.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "member",
+            "in": "query",
+            "required": false,
+            "description": "type=refresh: also return memberIdentifier, LinkedIn's permanent numeric member id. It requires reading the full profile page, so it is opt-in; the id is static, so fetch it once and keep it.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "type=profile only. When true, appends workEmail, emailStatus (verified | pattern-likely | unknown) and emailConfidence to the person record. Included in the same 1 credit, best-effort; a guess is never labeled verified."
+          },
+          {
+            "name": "domain",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "type=profile with email=true only. The employer's domain (e.g. stripe.com). When supplied, the email finder uses it directly instead of resolving the company from the profile's experience \u2014 faster, and it also works for profiles LinkedIn serves in restricted view (name only, no employer), where the domain otherwise cannot be resolved. Accepts a bare domain, a subdomain, or a full URL. Alias: companyDomain."
+          },
+          {
+            "name": "headline",
+            "in": "query",
+            "required": false,
+            "description": "type=profile: for profiles whose companyState is `restricted`, attempt to recover the member's own public headline (free text, often naming the employer). Best effort, roughly one in twenty.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "title",
+            "in": "query",
+            "required": false,
+            "description": "type=people only. Find people by profession (e.g. \"accountants\", \"real estate agents\"). Combine with location for a single city (\"Chicago, IL\"). Values come from LinkedIn public service categories; an unknown profession returns no results rather than a guess. Alias: profession.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Public LinkedIn data for the chosen type. The populated data key depends on `type` (`people` for search). A private or empty profile returns null plus a note, uncharged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkedInResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid url or keywords."
+          },
+          "401": {
+            "description": "Missing or invalid API key."
+          },
+          "402": {
+            "description": "Out of credits."
+          },
+          "429": {
+            "description": "Rate limited."
+          },
+          "503": {
+            "description": "LinkedIn temporarily unavailable, retry shortly (uncharged)."
+          }
+        }
+      }
+    },
+    "/v1/demo": {
+      "get": {
+        "operationId": "demoSearch",
+        "summary": "Public demo (no key, rate-limited)",
+        "description": "A public, rate-limited demo of the search endpoint. No API key. For trying the API without signing up.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "maps",
+              "enum": [
+                "maps",
+                "web"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A small sample of results.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demo rate limit reached."
+          }
+        }
+      }
+    },
+    "/v1/linkedin/batch": {
+      "post": {
+        "operationId": "linkedinBatch",
+        "summary": "Refresh many LinkedIn profiles in one request",
+        "description": "Send up to 100 profile URLs and get results back IN INPUT ORDER. Built for keeping a large database current without one HTTP round trip per profile. Billing matches the single endpoint: one credit per successful row, not-accessible rows are free, and a malformed URL is returned as a per-row error rather than charged. A failing row never fails the batch.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "urls"
+                ],
+                "properties": {
+                  "urls": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 100,
+                    "description": "linkedin.com/in/ URLs or bare vanity ids."
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "refresh",
+                      "profile"
+                    ],
+                    "default": "refresh"
+                  },
+                  "member": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "refresh only: also return memberIdentifier."
+                  },
+                  "schema": {
+                    "type": "string",
+                    "enum": [
+                      "scrapin"
+                    ],
+                    "description": "profile only: return the ScrapIn-compatible shape."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Per-URL results in input order.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer"
+                    },
+                    "succeeded": {
+                      "type": "integer"
+                    },
+                    "charged": {
+                      "type": "integer"
+                    },
+                    "tookMs": {
+                      "type": "integer"
+                    },
+                    "creditsRemaining": {
+                      "type": "integer"
+                    },
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string"
+                          },
+                          "ok": {
+                            "type": "boolean"
+                          },
+                          "data": {
+                            "type": "object",
+                            "description": "Present when ok. The same shape the single endpoint returns."
+                          },
+                          "error": {
+                            "type": "string"
+                          },
+                          "retryable": {
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad body, no urls, or more than 100 urls."
+          },
+          "401": {
+            "description": "Invalid or missing API key."
+          },
+          "402": {
+            "description": "Out of credits."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key"
+      }
+    },
+    "schemas": {
+      "SearchResult": {
+        "type": "object",
+        "description": "Polymorphic result. `searchParameters` echoes your request; the populated array key depends on `type`.",
+        "properties": {
+          "searchParameters": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "organic": {
+            "type": "array",
+            "description": "web, scholar, patents, lens",
+            "items": {
+              "$ref": "#/components/schemas/OrganicResult"
+            }
+          },
+          "places": {
+            "type": "array",
+            "description": "maps, places",
+            "items": {
+              "$ref": "#/components/schemas/Place"
+            }
+          },
+          "news": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NewsItem"
+            }
+          },
+          "shopping": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShoppingItem"
+            }
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImageItem"
+            }
+          },
+          "videos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VideoItem"
+            }
+          },
+          "reviews": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Review"
+            }
+          },
+          "suggestions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Suggestion"
+            }
+          },
+          "text": {
+            "type": "string",
+            "description": "type=webpage: the page's readable text."
+          },
+          "markdown": {
+            "type": "string",
+            "description": "type=webpage with includeMarkdown=true."
+          },
+          "metadata": {
+            "type": "object",
+            "description": "type=webpage: title + og/twitter/article meta.",
+            "additionalProperties": true
+          },
+          "jsonld": {
+            "description": "type=webpage: parsed JSON-LD."
+          },
+          "nextPageToken": {
+            "type": "string",
+            "description": "type=reviews: cursor for the next page."
+          },
+          "creditsRemaining": {
+            "type": "integer",
+            "nullable": true
+          },
+          "tookMs": {
+            "type": "integer"
+          }
+        }
+      },
+      "OrganicResult": {
+        "type": "object",
+        "description": "Web / Scholar / Patents / Lens result.",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "link": {
+            "type": "string"
+          },
+          "snippet": {
+            "type": "string",
+            "nullable": true
+          },
+          "date": {
+            "type": "string",
+            "nullable": true
+          },
+          "position": {
+            "type": "integer"
+          },
+          "source": {
+            "type": "string",
+            "nullable": true,
+            "description": "Scholar publication info / Lens source site."
+          },
+          "citedBy": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Scholar."
+          },
+          "assignee": {
+            "type": "string",
+            "nullable": true,
+            "description": "Patents."
+          },
+          "filingDate": {
+            "type": "string",
+            "nullable": true,
+            "description": "Patents."
+          },
+          "imageUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "Lens."
+          },
+          "thumbnailUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "Lens: thumbnail of the matched image."
+          },
+          "publicationInfo": {
+            "type": "string",
+            "nullable": true,
+            "description": "Scholar: authors, journal and year as one line."
+          },
+          "year": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Scholar: publication year parsed from publicationInfo."
+          },
+          "pdfUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "Scholar: link to the PDF copy when one is offered."
+          },
+          "id": {
+            "type": "string",
+            "nullable": true,
+            "description": "Scholar: Google Scholar cluster id for the result."
+          },
+          "htmlUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "Scholar: full-text link when the side resource is an HTML copy (pdfUrl is null then)."
+          }
+        }
+      },
+      "Place": {
+        "type": "object",
+        "description": "A place. type=places returns the lean serper-parity subset; type=maps returns this full shape (contact details, categories, opening hours, attributes and photos on top).",
+        "properties": {
+          "position": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string",
+            "description": "Business name."
+          },
+          "address": {
+            "type": "string",
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "nullable": true
+          },
+          "rating": {
+            "type": "number",
+            "nullable": true,
+            "description": "Star rating out of 5."
+          },
+          "ratingCount": {
+            "type": "integer",
+            "nullable": true
+          },
+          "reviewsCount": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Maps: exact review count."
+          },
+          "reviewsDistribution": {
+            "type": "object",
+            "nullable": true,
+            "description": "Maps with stars=true: 1-5 star histogram."
+          },
+          "category": {
+            "type": "string",
+            "nullable": true
+          },
+          "phoneNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "website": {
+            "type": "string",
+            "nullable": true
+          },
+          "cid": {
+            "type": "string",
+            "nullable": true
+          },
+          "placeId": {
+            "type": "string",
+            "nullable": true
+          },
+          "priceLevel": {
+            "type": "string",
+            "nullable": true,
+            "description": "Google's price band token, e.g. \"$1\u201310\". Null when Google shows none."
+          },
+          "thumbnailUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "A real place photo URL (maps only)."
+          },
+          "bookingLinks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Reservation/booking URLs when the place is bookable (maps only, sparse)."
+          },
+          "url": {
+            "type": "string",
+            "description": "Google Maps place URL. type=maps only (the richer Maps shape; type=places returns the lean serper-parity set)."
+          },
+          "fid": {
+            "type": "string",
+            "description": "Google feature id (0x\u2026:0x\u2026), usable as an input to type=reviews. type=maps only (the richer Maps shape; type=places returns the lean serper-parity set)."
+          },
+          "street": {
+            "type": "string",
+            "nullable": true,
+            "description": "Street line of the address. type=maps only (the richer Maps shape; type=places returns the lean serper-parity set)."
+          },
+          "city": {
+            "type": "string",
+            "nullable": true,
+            "description": "type=maps only (the richer Maps shape; type=places returns the lean serper-parity set)."
+          },
+          "state": {
+            "type": "string",
+            "nullable": true,
+            "description": "type=maps only (the richer Maps shape; type=places returns the lean serper-parity set)."
+          },
+          "postalCode": {
+            "type": "string",
+            "nullable": true,
+            "description": "type=maps only (the richer Maps shape; type=places returns the lean serper-parity set)."
+          },
+          "countryCode": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO country code. type=maps only (the richer Maps shape; type=places returns the lean serper-parity set)."
+          },
+          "location": {
+            "type": "object",
+            "description": "{lat,lng}. type=maps only (the richer Maps shape; type=places returns the lean serper-parity set).",
+            "properties": {
+              "lat": {
+                "type": "number"
+              },
+              "lng": {
+                "type": "number"
+              }
+            }
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true,
+            "description": "Formatted phone number. Null when Google does not show one. type=maps only (the richer Maps shape; type=places returns the lean serper-parity set)."
+          },
+          "phoneUnformatted": {
+            "type": "string",
+            "nullable": true,
+            "description": "E.164-style phone number. type=maps only (the richer Maps shape; type=places returns the lean serper-parity set)."
+          },
+          "categoryName": {
+            "type": "string",
+            "nullable": true,
+            "description": "Primary Google category. type=maps only (the richer Maps shape; type=places returns the lean serper-parity set)."
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "All Google categories. type=maps only (the richer Maps shape; type=places returns the lean serper-parity set)."
+          },
+          "totalScore": {
+            "type": "number",
+            "nullable": true,
+            "description": "Average star rating (same value as rating). type=maps only (the richer Maps shape; type=places returns the lean serper-parity set)."
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Google's editorial summary when present. type=maps only (the richer Maps shape; type=places returns the lean serper-parity set)."
+          },
+          "openingHours": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Day name to hours string, e.g. {\"Monday\":\"7:30 AM-2 PM\"}. type=maps only (the richer Maps shape; type=places returns the lean serper-parity set)."
+          },
+          "permanentlyClosed": {
+            "type": "boolean",
+            "description": "type=maps only (the richer Maps shape; type=places returns the lean serper-parity set)."
+          },
+          "mainImage": {
+            "type": "string",
+            "nullable": true,
+            "description": "Primary place photo. type=maps only (the richer Maps shape; type=places returns the lean serper-parity set)."
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "description": "Google's attribute groups, e.g. {\"Service options\":[\"Takeout\"]}. type=maps only (the richer Maps shape; type=places returns the lean serper-parity set)."
+          },
+          "scrapedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When this record was collected. type=maps only (the richer Maps shape; type=places returns the lean serper-parity set)."
+          }
+        }
+      },
+      "NewsItem": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "link": {
+            "type": "string"
+          },
+          "snippet": {
+            "type": "string",
+            "nullable": true
+          },
+          "date": {
+            "type": "string",
+            "nullable": true
+          },
+          "source": {
+            "type": "string",
+            "nullable": true
+          },
+          "imageUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "position": {
+            "type": "integer"
+          }
+        }
+      },
+      "ShoppingItem": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string",
+            "nullable": true
+          },
+          "condition": {
+            "type": "string",
+            "nullable": true
+          },
+          "link": {
+            "type": "string",
+            "nullable": true,
+            "description": "Google product page URL (always present since 2026-08)."
+          },
+          "price": {
+            "type": "string",
+            "nullable": true
+          },
+          "imageUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "Product thumbnail: a gstatic URL, or an inline data:image URI for some top-of-page rows."
+          },
+          "rating": {
+            "type": "number",
+            "nullable": true
+          },
+          "ratingCount": {
+            "type": "integer",
+            "nullable": true
+          },
+          "productId": {
+            "type": "string",
+            "nullable": true
+          },
+          "position": {
+            "type": "integer"
+          }
+        }
+      },
+      "ImageItem": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "imageWidth": {
+            "type": "integer",
+            "nullable": true
+          },
+          "imageHeight": {
+            "type": "integer",
+            "nullable": true
+          },
+          "thumbnailUrl": {
+            "type": "string"
+          },
+          "thumbnailWidth": {
+            "type": "integer",
+            "nullable": true
+          },
+          "thumbnailHeight": {
+            "type": "integer",
+            "nullable": true
+          },
+          "source": {
+            "type": "string",
+            "nullable": true,
+            "description": "The publisher's display name as Google shows it."
+          },
+          "domain": {
+            "type": "string",
+            "nullable": true
+          },
+          "link": {
+            "type": "string",
+            "nullable": true
+          },
+          "googleUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "position": {
+            "type": "integer"
+          },
+          "creator": {
+            "type": "string",
+            "description": "Image creator from IPTC metadata (sparse \u2014 only when Google carries it)."
+          },
+          "copyright": {
+            "type": "string",
+            "description": "Copyright notice from IPTC metadata (sparse)."
+          }
+        }
+      },
+      "VideoItem": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "link": {
+            "type": "string"
+          },
+          "snippet": {
+            "type": "string",
+            "nullable": true
+          },
+          "imageUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "duration": {
+            "type": "string",
+            "nullable": true
+          },
+          "source": {
+            "type": "string",
+            "nullable": true
+          },
+          "channel": {
+            "type": "string",
+            "nullable": true
+          },
+          "date": {
+            "type": "string",
+            "nullable": true
+          },
+          "position": {
+            "type": "integer"
+          }
+        }
+      },
+      "Review": {
+        "type": "object",
+        "properties": {
+          "rating": {
+            "type": "integer"
+          },
+          "date": {
+            "type": "string",
+            "nullable": true
+          },
+          "isoDate": {
+            "type": "string",
+            "nullable": true
+          },
+          "snippet": {
+            "type": "string",
+            "nullable": true
+          },
+          "likes": {
+            "type": "integer",
+            "description": "Total reactions on the review (sum across reaction types)."
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "nullable": true
+              },
+              "thumbnail": {
+                "type": "string",
+                "nullable": true
+              },
+              "link": {
+                "type": "string",
+                "nullable": true
+              },
+              "reviews": {
+                "type": "integer",
+                "nullable": true
+              },
+              "photos": {
+                "type": "integer",
+                "nullable": true
+              }
+            }
+          },
+          "media": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "imageUrl": {
+                  "type": "string"
+                },
+                "caption": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "link": {
+            "type": "string",
+            "nullable": true
+          },
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "response": {
+            "type": "object",
+            "nullable": true,
+            "description": "Owner reply, when present.",
+            "properties": {
+              "date": {
+                "type": "string"
+              },
+              "snippet": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "Suggestion": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        }
+      },
+      "LinkedInResult": {
+        "type": "object",
+        "description": "Polymorphic result. `type` echoes the request as linkedin-<type>; the populated data key depends on `type` (`people` for search).",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "linkedin-profile, linkedin-company, linkedin-posts, linkedin-jobs, or linkedin-search."
+          },
+          "url": {
+            "type": "string",
+            "description": "The requested LinkedIn URL (profile, company, posts, and url-based jobs calls)."
+          },
+          "query": {
+            "type": "string",
+            "description": "The requested keywords (search and keyword-based jobs calls)."
+          },
+          "profile": {
+            "type": "object",
+            "nullable": true,
+            "description": "type=profile: the person's public profile. Null with a `note` if the profile is private or empty (uncharged). Includes `photo` (the member's public profile photo URL, only ever present when the member's own settings make it visible to anyone without login) and `photoState` ('public' when a photo URL is returned; 'not_published' when LinkedIn serves no member photo publicly, in which case `photo` is null).",
+            "additionalProperties": true
+          },
+          "company": {
+            "type": "object",
+            "nullable": true,
+            "description": "type=company: the public company page. Includes employees with employees=true.",
+            "additionalProperties": true
+          },
+          "posts": {
+            "type": "array",
+            "description": "type=posts: public posts. Includes comments with comments=true.",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "jobs": {
+            "type": "array",
+            "description": "type=jobs: public job listings.",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "people": {
+            "type": "array",
+            "description": "type=search: matching people. With enrich=true each entry is the person's full profile.",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "note": {
+            "type": "string",
+            "description": "Present when a profile is private or empty."
+          },
+          "creditsRemaining": {
+            "type": "integer",
+            "nullable": true
+          },
+          "tookMs": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  }
+}

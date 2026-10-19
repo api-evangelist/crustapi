@@ -1,20 +1,21 @@
 openapi: 3.2.0
 info:
   title: Crust LinkedIn API
-  version: 2.0.0
-  description: Self-scraped Google and public LinkedIn data as a clean JSON API.
+  version: 2.1.0
+  description: People Refresh, public LinkedIn profiles, companies, posts, jobs and people search, plus Google Maps and Search. LinkedIn data uses public, logged-out sources. Returned fields vary by record. Wallet accounts use prepaid USD funds at each deposit’s saved endpoint rates. Eligible accounts receive $6 of free usage monthly; paid funds never expire. Empty and failed results are uncharged. Use explicit USD billing fields for accounting. See https://crustapi.com/docs and https://crustapi.com/pricing.
 servers:
 - url: https://crustapi.com
 security:
 - ApiKeyAuth: []
 tags:
 - name: Linked In
+  description: People Refresh and public LinkedIn data.
 paths:
   /v1/linkedin:
     get:
       operationId: linkedin
-      summary: Public LinkedIn data
-      description: 'Public (logged-out) LinkedIn data. Set `type` to choose what you get (default `profile`). profile/company/posts need `url`; jobs takes `keywords` (plus optional `location`) or a job `url`; search (people search) needs `keywords`. The data comes back under a key named after the type: `profile` and `company` are objects, `posts`, `jobs`, and `people` (for type=search) are arrays. Billed 1 credit per successful call. Exception: people search with `enrich=true` bills 1 credit per full profile returned. Empty results are free. A private or empty profile returns 200 with null plus a note and is not charged.'
+      summary: Refresh a person or retrieve public LinkedIn data
+      description: Set type=refresh and provide a LinkedIn profile URL for current public details at the response root. Person/profile returns a profile object; company a company object; posts and people/search arrays; a job URL returns one record under jobs while job searches return an array. Field availability varies. Each successful operation uses its endpoint rate; enriched People is billed per full profile and Refresh per accessible profile. Empty and failed results are uncharged. Missing values or URL status do not prove a job change or permanent deletion.
       parameters:
       - name: type
         in: query
@@ -22,116 +23,302 @@ paths:
         description: 'What to fetch. Singular gets the one you point at, plural finds many: person (one profile by URL) / people (find people by keywords) / company / job (one job by URL) / jobs (find jobs by keywords) / posts / refresh (fast freshness check). `profile` and `search` are the previous names for person and people and keep working unchanged.'
         schema:
           type: string
-          default: person
+          default: profile
           enum:
+          - refresh
           - person
-          - people
+          - profile
           - company
+          - people
+          - search
+          - posts
           - job
           - jobs
-          - posts
-          - refresh
-          - profile
-          - search
       - name: url
         in: query
         required: false
-        description: A linkedin.com URL. Required for profile (linkedin.com/in/...), company (linkedin.com/company/...), and posts (either). jobs also accepts a job URL instead of keywords.
+        description: Profile URL for Refresh/person, company URL for company, person/company URL for posts, or job URL for job.
         schema:
           type: string
+      - name: member
+        in: query
+        required: false
+        description: 'Refresh: `member=true` adds the numeric member ID when available.'
+        schema:
+          type: boolean
+          default: false
       - name: keywords
         in: query
         required: false
-        description: What to search for. Required for type=search; required for type=jobs unless you pass a job `url`.
+        description: Search text for people or jobs. Supported filters can also be used without keywords.
         schema:
           type: string
       - name: location
         in: query
         required: false
-        description: 'type=jobs: city/region filter for the job search.'
+        description: People or job location. For jobs, separate up to three locations with semicolons.
         schema:
           type: string
+      - name: company
+        in: query
+        required: false
+        schema:
+          type: string
+        description: 'People: current employer. Jobs: company name, LinkedIn company URL or numeric ID.'
+      - name: school
+        in: query
+        required: false
+        schema:
+          type: string
+        description: School filter for people search.
+      - name: title
+        in: query
+        required: false
+        description: Profession filter for people search. Combine with location; unsupported professions can return no results.
+        schema:
+          type: string
+      - name: profession
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Alias of the people-search `title` filter.
+      - name: industry
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Industry filter for people search.
+      - name: companySize
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Employer size filter for people search.
+      - name: pastCompany
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Previous-employer filter for people search.
+      - name: followersMin
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+        description: Minimum follower count for people search.
+      - name: followersMax
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+        description: Maximum follower count for people search.
+      - name: connectionsMin
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+        description: Minimum connection count for people search.
+      - name: connectionsMax
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+        description: Maximum connection count for people search.
+      - name: expCountMin
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+        description: Minimum employment-row count for people search.
+      - name: expCountMax
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+        description: Maximum employment-row count for people search.
+      - name: titleExclude
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Exclude titles from people or job searches. Comma-separate multiple values.
+      - name: companyExclude
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Exclude employers from people search. Comma-separate multiple values.
+      - name: locationExclude
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Exclude locations from people or job searches. Semicolon-separate multiple locations.
+      - name: pastCompanyExclude
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Exclude previous employers from people search. Comma-separate multiple values.
+      - name: sortBy
+        in: query
+        required: false
+        schema:
+          type: string
+        description: 'Jobs: newest first by default; use `relevance` for relevance order.'
+      - name: postedWithin
+        in: query
+        required: false
+        schema:
+          type: string
+        description: 'Jobs: `24h`, `week` or `month` publication window.'
+      - name: daysSincePostedMin
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+        description: 'Jobs: minimum days since posting.'
+      - name: daysSincePostedMax
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+        description: 'Jobs: maximum days since posting.'
+      - name: employmentType
+        in: query
+        required: false
+        schema:
+          type: string
+        description: 'Jobs: comma-separated employment types, such as `Full-time,Contract`.'
+      - name: seniority
+        in: query
+        required: false
+        schema:
+          type: string
+        description: 'Jobs: comma-separated seniority levels, such as `Director,Executive`.'
+      - name: titleInclude
+        in: query
+        required: false
+        schema:
+          type: string
+        description: 'Jobs: comma-separated terms to match in the title.'
+      - name: descriptionKeywords
+        in: query
+        required: false
+        schema:
+          type: string
+        description: 'Jobs: comma-separated terms to match in the title or description.'
+      - name: hasRecruiter
+        in: query
+        required: false
+        schema:
+          type: string
+        description: 'Jobs: `true` requires a published job poster; `false` excludes those postings.'
+      - name: count
+        in: query
+        required: false
+        schema:
+          type: boolean
+        description: 'People/jobs: `count=true` returns a free count preview without rows. Counts can be unavailable or capped; check the returned metadata.'
+      - name: num
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+        description: Requested result count. Jobs default to 25 (max 100); posts to 50 (max 100). People limits depend on search type.
+      - name: limit
+        in: query
+        required: false
+        description: Alternative result-count parameter. Jobs default to 25 (max 100); posts to 50 (max 100). People limits depend on search type.
+        schema:
+          type: integer
+          minimum: 1
       - name: start
         in: query
         required: false
-        description: 'type=jobs: result offset for paging.'
+        description: Result offset for supported searches.
         schema:
           type: integer
           minimum: 0
           default: 0
-      - name: limit
-        in: query
-        required: false
-        description: 'How many results to return. jobs: default 25, max 50. posts: default 50, max 100. search: default 10, max 15.'
-        schema:
-          type: integer
-      - name: enrich
-        in: query
-        required: false
-        description: 'type=search: return each person''s FULL profile in the same call. Bills 1 credit per full profile returned instead of 1 per call.'
-        schema:
-          type: boolean
-          default: false
-      - name: employees
-        in: query
-        required: false
-        description: 'type=company: include the employee list.'
-        schema:
-          type: boolean
-          default: false
-      - name: comments
-        in: query
-        required: false
-        description: 'type=posts: include comments on each post.'
-        schema:
-          type: boolean
-          default: false
-      - name: member
-        in: query
-        required: false
-        description: 'type=refresh: also return memberIdentifier, LinkedIn''s permanent numeric member id. It requires reading the full profile page, so it is opt-in; the id is static, so fetch it once and keep it.'
-        schema:
-          type: boolean
-          default: false
       - name: email
         in: query
         required: false
         schema:
           type: boolean
           default: false
-        description: type=profile only. When true, appends workEmail, emailStatus (verified | pattern-likely | unknown) and emailConfidence to the person record. Included in the same 1 credit, best-effort; a guess is never labeled verified.
+        description: 'Person/profile: `email=true` adds work-email fields when available.'
       - name: domain
         in: query
         required: false
         schema:
           type: string
-        description: 'type=profile with email=true only. The employer''s domain (e.g. stripe.com). When supplied, the email finder uses it directly instead of resolving the company from the profile''s experience — faster, and it also works for profiles LinkedIn serves in restricted view (name only, no employer), where the domain otherwise cannot be resolved. Accepts a bare domain, a subdomain, or a full URL. Alias: companyDomain.'
+        description: Known employer domain for the person/profile email lookup.
+      - name: companyId
+        in: query
+        required: false
+        schema:
+          type: boolean
+        description: 'Person/profile: `true` requests the first returned company’s numeric ID. Other rows may already include IDs.'
+      - name: schoolId
+        in: query
+        required: false
+        schema:
+          type: boolean
+        description: 'Person/profile: `true` requests the first returned school’s numeric ID. Other rows may already include IDs.'
       - name: headline
         in: query
         required: false
-        description: 'type=profile: for profiles whose companyState is `restricted`, attempt to recover the member''s own public headline (free text, often naming the employer). Best effort, roughly one in twenty.'
+        description: 'Person/profile: `headline=true` requests the optional `publicHeadline` field.'
         schema:
           type: boolean
           default: false
-      - name: title
+      - name: employees
         in: query
         required: false
-        description: 'type=people only. Find people by profession (e.g. "accountants", "real estate agents"). Combine with location for a single city ("Chicago, IL"). Values come from LinkedIn public service categories; an unknown profession returns no results rather than a guess. Alias: profession.'
+        description: 'Company: `employees=true` adds matching-people results.'
         schema:
-          type: string
+          type: boolean
+          default: false
+      - name: comments
+        in: query
+        required: false
+        description: 'Posts: `comments=true` adds available comments.'
+        schema:
+          type: boolean
+          default: false
+      - name: enrich
+        in: query
+        required: false
+        description: 'People/search: `enrich=true` adds available full profiles, billed per profile returned.'
+        schema:
+          type: boolean
+          default: false
       responses:
         '200':
-          description: Public LinkedIn data for the chosen type. The populated data key depends on `type` (`people` for search). A private or empty profile returns null plus a note, uncharged.
+          description: Response for the selected operation. Unavailable profiles/Refresh are uncharged; inspect accessible and profileState where returned.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LinkedInResult'
+                anyOf:
+                - $ref: '#/components/schemas/LinkedInRefresh'
+                - $ref: '#/components/schemas/LinkedInResult'
         '400':
           description: Missing or invalid url or keywords.
         '401':
           description: Missing or invalid API key.
         '402':
-          description: Out of credits.
+          description: Insufficient available balance or legacy credits. No successful result is charged when the operation cannot be funded.
         '429':
           description: Rate limited.
         '503':
@@ -141,8 +328,8 @@ paths:
   /v1/linkedin/batch:
     post:
       operationId: linkedinBatch
-      summary: Refresh many LinkedIn profiles in one request
-      description: 'Send up to 100 profile URLs and get results back IN INPUT ORDER. Built for keeping a large database current without one HTTP round trip per profile. Billing matches the single endpoint: one credit per successful row, not-accessible rows are free, and a malformed URL is returned as a per-row error rather than charged. A failing row never fails the batch.'
+      summary: Process a list of LinkedIn URLs
+      description: 'Up to 100 URLs synchronously, or 10,000 with a public HTTPS webhook. Supported types: refresh, person/profile, company, posts. Results remain in input order. Each row carries its own data or error and successful rows use the chosen endpoint rate. Large webhook payloads may be replaced by a temporary resultsUrl; download before resultsExpireAt. Status requests return counts and delivery state, not result rows. Webhooks cannot contain embedded credentials; redirects are not followed and failed delivery is retried once.'
       requestBody:
         required: true
         content:
@@ -156,23 +343,30 @@ paths:
                   type: array
                   items:
                     type: string
-                  maxItems: 100
-                  description: linkedin.com/in/ URLs or bare vanity ids.
+                  maxItems: 10000
+                  description: URL list. Maximum 100 without webhook; maximum 10,000 with webhook. Use the URL type required by the operation.
+                  minItems: 1
                 type:
                   type: string
                   enum:
                   - refresh
+                  - person
                   - profile
+                  - company
+                  - posts
                   default: refresh
                 member:
                   type: boolean
                   default: false
                   description: 'refresh only: also return memberIdentifier.'
-                schema:
+                webhook:
                   type: string
-                  enum:
-                  - scrapin
-                  description: 'profile only: return the ScrapIn-compatible shape.'
+                  format: uri
+                  description: Public HTTPS URL for asynchronous delivery. Required for more than 100 URLs.
+                comments:
+                  type: boolean
+                  default: false
+                  description: 'Posts only: include available comments.'
       responses:
         '200':
           description: Per-URL results in input order.
@@ -187,10 +381,12 @@ paths:
                     type: integer
                   charged:
                     type: integer
+                    description: Successful billing-unit count. Use billing.chargedUsd for the USD charge.
                   tookMs:
                     type: integer
                   creditsRemaining:
                     type: integer
+                    description: Numeric compatibility count of remaining affordable billing units for wallet accounts; legacy accounts return remaining credits. This is not a dollar amount. Use billing.remainingUsd or wallet.availableUsd for USD accounting.
                   results:
                     type: array
                     items:
@@ -201,47 +397,1332 @@ paths:
                         ok:
                           type: boolean
                         data:
-                          type: object
-                          description: Present when ok. The same shape the single endpoint returns.
+                          description: Operation payload without the single-request timing/billing envelope. Refresh is a flat object; person/company are objects; posts is an array. May be null for unavailable data.
+                          anyOf:
+                          - type: object
+                            additionalProperties: true
+                          - type: array
+                            items:
+                              type: object
+                              additionalProperties: true
                         error:
                           type: string
                         retryable:
                           type: boolean
+                        notAccessible:
+                          type: boolean
+                          description: Present when the row represents unavailable data; uncharged.
+                  billing:
+                    $ref: '#/components/schemas/WalletBilling'
+                  type:
+                    type: string
         '400':
-          description: Bad body, no urls, or more than 100 urls.
+          description: Invalid body, unsupported type, invalid webhook, or more than 100 sync / 10,000 async URLs.
         '401':
           description: Invalid or missing API key.
         '402':
-          description: Out of credits.
+          description: Insufficient available balance or legacy credits. No successful result is charged when the operation cannot be funded.
+        '202':
+          description: Accepted for asynchronous processing and webhook delivery.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jobId:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                    - accepted
+                  count:
+                    type: integer
+                  note:
+                    type: string
+        '429':
+          description: Rate limited; retry according to response headers.
       tags:
       - Linked In
+    get:
+      tags:
+      - Linked In
+      operationId: linkedinBatchStatus
+      summary: Read batch status and delivery counts
+      description: Uses the same account’s API key. Does not return result rows.
+      parameters:
+      - name: id
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Batch state and counts.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jobId:
+                    type:
+                    - string
+                    - 'null'
+                  type:
+                    type:
+                    - string
+                    - 'null'
+                  count:
+                    type:
+                    - integer
+                    - 'null'
+                  status:
+                    type:
+                    - string
+                    - 'null'
+                  succeeded:
+                    type:
+                    - integer
+                    - 'null'
+                  charged:
+                    type:
+                    - integer
+                    - 'null'
+                  error:
+                    type:
+                    - string
+                    - 'null'
+                  webhookDelivered:
+                    type:
+                    - boolean
+                    - 'null'
+                  createdAt:
+                    type:
+                    - string
+                    - 'null'
+                  finishedAt:
+                    type:
+                    - string
+                    - 'null'
+        '400':
+          description: Missing job ID.
+        '401':
+          description: Invalid or missing API key.
+        '404':
+          description: No matching job for this account.
 components:
   schemas:
+    WalletBilling:
+      type: object
+      description: Optional USD accounting fields for enrolled wallet accounts. Legacy accounts retain numeric credit fields. Monetary values are exact decimal strings.
+      properties:
+        model:
+          type: string
+          enum:
+          - wallet
+        currency:
+          type: string
+          enum:
+          - USD
+        chargedUsd:
+          type: string
+          example: '0.001'
+          description: Actual USD usage charge for this request.
+        remainingUsd:
+          type: string
+          example: '5.999'
+          description: Available USD funds after settlement.
+        units:
+          type: integer
+          description: Successful billing units, not dollars.
+        product:
+          type: string
+          enum:
+          - googleSearch
+          - googleMaps
+          - linkedinRead
+          - linkedinSearch
+        debitId:
+          type:
+          - string
+          - 'null'
+        reason:
+          type:
+          - string
+          - 'null'
+    LinkedInRefresh:
+      type: object
+      description: Flat native People Refresh response. Optional or unavailable values may be null or omitted.
+      properties:
+        url:
+          type: string
+          description: Requested LinkedIn URL.
+        lastName:
+          type:
+          - string
+          - 'null'
+          description: Published last name.
+        titleSource:
+          type:
+          - string
+          - 'null'
+          description: '`headline` means the title comes from headline wording; `linkedin` means an explicit role title.'
+        firstName:
+          type:
+          - string
+          - 'null'
+          description: Published first name.
+        tookMs:
+          type: integer
+          description: Request processing time in milliseconds.
+        photo:
+          type:
+          - string
+          - 'null'
+          description: Public profile photo URL, or null when unavailable.
+        billing:
+          $ref: '#/components/schemas/WalletBilling'
+          description: Wallet charge and balance as decimal strings in `chargedUsd` and `remainingUsd`, when applicable.
+        currentCompany:
+          type:
+          - object
+          - 'null'
+          properties:
+            name:
+              type:
+              - string
+              - 'null'
+            slug:
+              type:
+              - string
+              - 'null'
+            linkedInUrl:
+              type:
+              - string
+              - 'null'
+            linkedInId:
+              type:
+              - string
+              - 'null'
+          additionalProperties: true
+          description: 'Current employer object: `name`, `slug`, `linkedInUrl` and `linkedInId` when available. Numeric IDs are strings; missing values can be null.'
+        companyState:
+          type:
+          - string
+          - 'null'
+          description: 'Employer availability: `public`, `restricted`, `not_published` or `unknown`. Missing data does not prove a job change.'
+        resolvedUrl:
+          type:
+          - string
+          - 'null'
+          description: Confirmed profile URL when available. Renamed URLs are not automatically discovered.
+        headlineSource:
+          type:
+          - string
+          - 'null'
+          description: Source label for the returned headline.
+        headline:
+          type:
+          - string
+          - 'null'
+          description: Published profile headline. It is not necessarily a job title.
+        memberIdentifier:
+          type:
+          - string
+          - 'null'
+          description: Numeric member ID as a string, when available. Refresh requires `member=true`, which can increase response time.
+        currentTitle:
+          type:
+          - string
+          - 'null'
+          description: Current role title when supported by the available data. See `titleSource` for its basis.
+        memorialized:
+          type:
+          - boolean
+          - 'null'
+          enum:
+          - true
+          - null
+          description: True when a public memorialization marker is established; otherwise null. Null does not establish account activity or whether the person is alive.
+        memorializedSource:
+          type:
+          - string
+          - 'null'
+          enum:
+          - linkedin_public_memorialized_banner
+          - null
+          description: Source label for a returned memorialization marker.
+        accessible:
+          type: boolean
+          description: Whether public profile data was returned.
+        photoState:
+          type:
+          - string
+          - 'null'
+          description: Availability label for the profile photo.
+        profileState:
+          type: string
+          enum:
+          - accessible
+          - exists_not_public
+          - not_resolvable
+          - unknown
+          description: Profile URL status. See the profile-status reference below.
+        creditsRemaining:
+          type:
+          - integer
+          - 'null'
+          description: Numeric balance compatibility value. For wallet dollar amounts, use `billing.remainingUsd`.
+        type:
+          type: string
+          enum:
+          - linkedin-refresh
+        publicIdentifier:
+          type:
+          - string
+          - 'null'
+          description: Public profile handle from the LinkedIn URL.
+        currentSchool:
+          type:
+          - object
+          - 'null'
+          properties:
+            name:
+              type:
+              - string
+              - 'null'
+            slug:
+              type:
+              - string
+              - 'null'
+            linkedInUrl:
+              type:
+              - string
+              - 'null'
+            linkedInId:
+              type:
+              - string
+              - 'null'
+          additionalProperties: true
+          description: 'Published school object: `name`, `slug`, `linkedInUrl` and `linkedInId` when available. Numeric IDs are strings; missing values can be null.'
+      additionalProperties: true
+    LinkedInCompany:
+      type:
+      - object
+      - 'null'
+      properties:
+        name:
+          type:
+          - string
+          - 'null'
+          description: Published company name.
+        universalName:
+          type:
+          - string
+          - 'null'
+          description: Company handle from its LinkedIn URL.
+        pageType:
+          type: string
+          enum:
+          - company
+          - showcase
+          description: Company or showcase page type.
+        publishedContacts:
+          type: array
+          description: Published emails and phone numbers with supporting text and URL. Publication does not verify ownership or reachability.
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum:
+                - email
+                - phone
+              value:
+                type: string
+              source:
+                type: string
+                enum:
+                - company_about
+              sourceUrl:
+                type: string
+                format: uri
+              evidence:
+                type: string
+                description: The qualifying published text.
+            additionalProperties: true
+        employeeSearchCompanyIds:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          description: Company IDs associated with employee search. These do not replace the company’s own `linkedInId`.
+        jobSearchUrl:
+          type:
+          - string
+          - 'null'
+          description: Company jobs link, when available. It is not a vacancy count.
+        linkedInId:
+          type:
+          - string
+          - 'null'
+          description: Numeric LinkedIn company ID as a string.
+        tagline:
+          type:
+          - string
+          - 'null'
+          description: Published company tagline.
+        description:
+          type:
+          - string
+          - 'null'
+          description: Published company description.
+        website:
+          type:
+          - string
+          - 'null'
+          description: Published website URL, when available.
+        industry:
+          type:
+          - string
+          - 'null'
+          description: Published industry.
+        companySize:
+          type:
+          - string
+          - 'null'
+          description: Published employee size band.
+        employeeCount:
+          type:
+          - integer
+          - 'null'
+          description: Employee count reported by LinkedIn. This can differ from the size band.
+        employeeCountRange:
+          type:
+          - object
+          - 'null'
+          description: Numeric lower and upper bounds of the published size band.
+          additionalProperties: true
+        headquarters:
+          type:
+          - string
+          - 'null'
+          description: Published headquarters location.
+        locations:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            properties:
+              addressLines:
+                type: array
+                items:
+                  type: string
+                description: Original visible office address lines. They do not imply separately verified city/state/postal components.
+              directionsUrl:
+                type:
+                - string
+                - 'null'
+                description: Map link published with this office; not geocoded coordinates.
+              isPrimary:
+                type:
+                - boolean
+                - 'null'
+                description: True only when this office is explicitly marked primary; absence is unknown.
+          description: Published offices. Rows may include `addressLines`, `directionsUrl` and `isPrimary`; a map link does not establish coordinates.
+        companyType:
+          type:
+          - string
+          - 'null'
+          description: Published organization type.
+        founded:
+          type:
+          - string
+          - 'null'
+          description: Published founding year, when available.
+        specialties:
+          type:
+          - array
+          - 'null'
+          items:
+            type:
+            - string
+            - 'null'
+          description: Published company specialties.
+        followers:
+          type:
+          - integer
+          - 'null'
+          description: Follower count, when available.
+        address:
+          type:
+          - object
+          - 'null'
+          properties:
+            street:
+              type:
+              - string
+              - 'null'
+            city:
+              type:
+              - string
+              - 'null'
+            region:
+              type:
+              - string
+              - 'null'
+            postalCode:
+              type:
+              - string
+              - 'null'
+            country:
+              type:
+              - string
+              - 'null'
+          additionalProperties: true
+          description: Structured headquarters address, when available.
+        logo:
+          type:
+          - string
+          - 'null'
+          description: Public company logo URL.
+        banner:
+          type:
+          - string
+          - 'null'
+          description: Public company banner URL.
+        crunchbaseUrl:
+          description: Published Crunchbase link, when available.
+        similarCompanies:
+          type: array
+          description: Available related company pages.
+          items:
+            type: object
+            description: A returned source record. Fields vary by record.
+            additionalProperties: true
+        affiliatedPages:
+          type: array
+          description: Available affiliated company or showcase pages. An affiliation does not necessarily mean a subsidiary.
+          items:
+            type: object
+            description: A returned source record. Fields vary by record.
+            additionalProperties: true
+        employeeSample:
+          type: array
+          description: Partial public employee sample with names and profile URLs. It is not a complete workforce list.
+          items:
+            type: object
+            description: A returned source record. Fields vary by record.
+            additionalProperties: true
+        featuredProducts:
+          type: array
+          description: Available featured products with names, links and details. This may be a selection of all products.
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              name:
+                type: string
+              linkedinUrl:
+                type: string
+                format: uri
+              category:
+                type:
+                - object
+                - 'null'
+                properties:
+                  name:
+                    type: string
+                  linkedinUrl:
+                    type: string
+                    format: uri
+                additionalProperties: false
+              description:
+                type:
+                - string
+                - 'null'
+              logoUrl:
+                type:
+                - string
+                - 'null'
+              imageUrl:
+                type:
+                - string
+                - 'null'
+              source:
+                type: string
+                enum:
+                - company_public_products
+            required:
+            - name
+            - linkedinUrl
+            - category
+            - description
+            - logoUrl
+            - imageUrl
+            - source
+        linkedinUrl:
+          type:
+          - string
+          - 'null'
+          description: Public LinkedIn URL.
+      additionalProperties: true
+      description: Public company or showcase page. Published contact details, offices, related pages and visible people are retained when available. Employee samples are not a complete workforce list.
+    LinkedInProfile:
+      type:
+      - object
+      - 'null'
+      properties:
+        id:
+          type:
+          - string
+          - 'null'
+          description: Profile identifier.
+        name:
+          type:
+          - string
+          - 'null'
+          description: Published full name.
+        firstName:
+          type:
+          - string
+          - 'null'
+          description: Published first name.
+        lastName:
+          type:
+          - string
+          - 'null'
+          description: Published last name.
+        headline:
+          type:
+          - string
+          - 'null'
+          description: Published profile headline. It is not necessarily a job title.
+        currentTitle:
+          type:
+          - string
+          - 'null'
+          description: Current role title when supported by the available data. See `titleSource` for its basis.
+        titleSource:
+          type:
+          - string
+          - 'null'
+          description: '`headline` means the title comes from headline wording; `linkedin` means an explicit role title.'
+        currentCompany:
+          type:
+          - string
+          - 'null'
+          description: Current employer name. This is a string; Refresh uses a company object.
+        memorialized:
+          type:
+          - boolean
+          - 'null'
+          enum:
+          - true
+          - null
+          description: True when a public memorialization marker is established; otherwise null. Null does not establish account activity or whether the person is alive.
+        memorializedSource:
+          type:
+          - string
+          - 'null'
+          enum:
+          - linkedin_public_memorialized_banner
+          - null
+          description: Source label for a returned memorialization marker.
+        companyState:
+          type: string
+          enum:
+          - public
+          - restricted
+          - not_published
+          - unknown
+          description: 'Employer availability: `public`, `restricted`, `not_published` or `unknown`. Missing data does not prove a job change.'
+        about:
+          type:
+          - string
+          - 'null'
+          description: Published About text.
+        followerCount:
+          type:
+          - integer
+          - 'null'
+          description: Reported follower count, when available.
+        connectionsCount:
+          type:
+          - integer
+          - 'null'
+          description: Reported connection count, when available.
+        location:
+          type:
+          - object
+          - 'null'
+          properties:
+            linkedinText:
+              type:
+              - string
+              - 'null'
+            countryCode:
+              type:
+              - string
+              - 'null'
+            parsed:
+              type:
+              - object
+              - 'null'
+              properties:
+                text:
+                  type:
+                  - string
+                  - 'null'
+                countryCode:
+                  type:
+                  - string
+                  - 'null'
+                regionCode:
+                  description: Optional value; null when unavailable.
+                country:
+                  type:
+                  - string
+                  - 'null'
+                countryFull:
+                  type:
+                  - string
+                  - 'null'
+                state:
+                  type:
+                  - string
+                  - 'null'
+                city:
+                  type:
+                  - string
+                  - 'null'
+              additionalProperties: true
+          additionalProperties: true
+          description: Location object with published text and available parsed components.
+        experience:
+          type:
+          - array
+          - 'null'
+          items:
+            type:
+            - object
+            - 'null'
+            properties:
+              position:
+                type:
+                - string
+                - 'null'
+              location:
+                type:
+                - string
+                - 'null'
+              companyName:
+                type:
+                - string
+                - 'null'
+              companyLinkedinUrl:
+                type:
+                - string
+                - 'null'
+              companyUniversalName:
+                type:
+                - string
+                - 'null'
+              duration:
+                description: Optional value; null when unavailable.
+              description:
+                description: Optional value; null when unavailable.
+              experienceGroupId:
+                description: Optional value; null when unavailable.
+              startDate:
+                description: Optional value; null when unavailable.
+              endDate:
+                description: Optional value; null when unavailable.
+              companyLogo:
+                type:
+                - object
+                - 'null'
+                properties:
+                  url:
+                    type:
+                    - string
+                    - 'null'
+                  sizes:
+                    type:
+                    - array
+                    - 'null'
+                    items:
+                      type:
+                      - object
+                      - 'null'
+                      properties:
+                        url:
+                          type:
+                          - string
+                          - 'null'
+                        width:
+                          type:
+                          - integer
+                          - 'null'
+                        height:
+                          type:
+                          - integer
+                          - 'null'
+                      additionalProperties: true
+                additionalProperties: true
+              domain:
+                type:
+                - string
+                - 'null'
+              companyIndustry:
+                type:
+                - string
+                - 'null'
+              companySize:
+                type:
+                - string
+                - 'null'
+              companyHeadquarters:
+                type:
+                - string
+                - 'null'
+              positionSource:
+                type:
+                - string
+                - 'null'
+              companyLinkedInId:
+                type:
+                - string
+                - 'null'
+              companyNameSource:
+                type:
+                - string
+                - 'null'
+              dateSource:
+                type:
+                - string
+                - 'null'
+            additionalProperties: true
+          description: Available employment rows. Missing end dates do not establish that a role is current.
+        experienceAvailability:
+          type: object
+          properties:
+            returnedPositions:
+              type: integer
+              minimum: 0
+            positionsWithTitle:
+              type: integer
+              minimum: 0
+            positionsWithDerivedTitle:
+              type: integer
+              minimum: 0
+            positionsWithStartDate:
+              type: integer
+              minimum: 0
+            positionsWithEndDate:
+              type: integer
+              minimum: 0
+            positionsWithDescription:
+              type: integer
+              minimum: 0
+          description: Counts of returned employment rows. `positionsWithTitle` and `positionsWithDerivedTitle` count explicit and derived titles separately; this does not establish complete history.
+        experienceState:
+          type:
+          - string
+          - 'null'
+          description: Availability label for the returned employment history.
+        education:
+          type:
+          - array
+          - 'null'
+          items:
+            type:
+            - object
+            - 'null'
+            properties:
+              schoolName:
+                type:
+                - string
+                - 'null'
+              schoolLinkedinUrl:
+                type:
+                - string
+                - 'null'
+              schoolSlug:
+                type:
+                - string
+                - 'null'
+              schoolId:
+                type:
+                - string
+                - 'null'
+              degree:
+                description: Optional value; null when unavailable.
+              fieldOfStudy:
+                description: Optional value; null when unavailable.
+              startDate:
+                type:
+                - object
+                - 'null'
+                properties:
+                  year:
+                    type:
+                    - integer
+                    - 'null'
+                  text:
+                    type:
+                    - string
+                    - 'null'
+                additionalProperties: true
+              endDate:
+                type:
+                - object
+                - 'null'
+                properties:
+                  year:
+                    type:
+                    - integer
+                    - 'null'
+                  text:
+                    type:
+                    - string
+                    - 'null'
+                additionalProperties: true
+              period:
+                type:
+                - string
+                - 'null'
+              description:
+                description: Optional value; null when unavailable.
+              insights:
+                description: Optional value; null when unavailable.
+              schoolLogo:
+                type:
+                - object
+                - 'null'
+                properties:
+                  url:
+                    type:
+                    - string
+                    - 'null'
+                  sizes:
+                    type:
+                    - array
+                    - 'null'
+                    items:
+                      type:
+                      - object
+                      - 'null'
+                      properties:
+                        url:
+                          type:
+                          - string
+                          - 'null'
+                        width:
+                          type:
+                          - integer
+                          - 'null'
+                        height:
+                          type:
+                          - integer
+                          - 'null'
+                      additionalProperties: true
+                additionalProperties: true
+              schoolLinkedInId:
+                type:
+                - string
+                - 'null'
+            additionalProperties: true
+          description: Available education rows with schools, qualifications and dates.
+        skills:
+          type:
+          - array
+          - 'null'
+          items: {}
+          description: Available published skills.
+        languages:
+          type:
+          - array
+          - 'null'
+          items:
+            type:
+            - object
+            - 'null'
+            properties:
+              name:
+                type:
+                - string
+                - 'null'
+              proficiency:
+                type:
+                - string
+                - 'null'
+            additionalProperties: true
+          description: Available published languages.
+        honorsAndAwards:
+          type: array
+          description: Available honors and awards.
+          items:
+            type: object
+            description: A returned source record. Fields vary by record.
+            additionalProperties: true
+        certifications:
+          type: array
+          description: Available certifications and their details.
+          items:
+            type: object
+            description: A returned source record. Fields vary by record.
+            additionalProperties: true
+        courses:
+          type: array
+          description: Available published courses.
+          items:
+            type: object
+            description: A returned source record. Fields vary by record.
+            additionalProperties: true
+        volunteering:
+          type: array
+          description: Available volunteer experience.
+          items:
+            type: object
+            description: A returned source record. Fields vary by record.
+            additionalProperties: true
+        organizations:
+          type: array
+          description: Available organization memberships and roles.
+          items:
+            type: object
+            description: A returned source record. Fields vary by record.
+            additionalProperties: true
+        publications:
+          type: array
+          description: Available publications and supporting details.
+          items:
+            type: object
+            description: A returned source record. Fields vary by record.
+            additionalProperties: true
+        projects:
+          type: array
+          description: Available projects and supporting details.
+          items:
+            type: object
+            description: A returned source record. Fields vary by record.
+            additionalProperties: true
+        recommendations:
+          type: array
+          description: Available recommendation entries. These may be a subset of the reported count.
+          items:
+            type: object
+            description: A returned source record. Fields vary by record.
+            additionalProperties: true
+        recommendersCount:
+          type:
+          - integer
+          - 'null'
+          description: Reported recommendation count, when available.
+        influencer:
+          type:
+          - boolean
+          - 'null'
+          description: Public influencer marker when established; null means unknown.
+        topVoice:
+          type:
+          - boolean
+          - 'null'
+          description: Public Top Voice marker when established; null means unknown.
+        creator:
+          type:
+          - boolean
+          - 'null'
+          description: Public creator marker when established; null means unknown.
+        websites:
+          type: array
+          description: Published links as objects containing `url` and `label`.
+          items:
+            type: object
+            description: A returned source record. Fields vary by record.
+            additionalProperties: true
+        website:
+          type:
+          - string
+          - 'null'
+          description: Existing single-website field. Additional links appear in `websites`.
+        photo:
+          type:
+          - string
+          - 'null'
+          description: Public profile photo URL, or null when unavailable.
+        photoState:
+          type:
+          - string
+          - 'null'
+          description: Availability label for the profile photo.
+        bannerImage:
+          type:
+          - string
+          - 'null'
+          description: Public profile background image URL, when available.
+        memberId:
+          type:
+          - string
+          - 'null'
+          description: Numeric LinkedIn member ID as a string, when available.
+        memberIdentifier:
+          type:
+          - string
+          - 'null'
+          description: Numeric member ID as a string, when available. Refresh requires `member=true`, which can increase response time.
+        linkedInIdentifier:
+          type:
+          - string
+          - 'null'
+          description: LinkedIn member URN, when available.
+        linkedinUrl:
+          type:
+          - string
+          - 'null'
+          description: Public LinkedIn URL.
+        publicIdentifier:
+          type:
+          - string
+          - 'null'
+          description: Public profile handle from the LinkedIn URL.
+        peopleAlsoViewed:
+          type:
+          - array
+          - 'null'
+          items:
+            type:
+            - object
+            - 'null'
+            properties:
+              name:
+                type:
+                - string
+                - 'null'
+              publicIdentifier:
+                type:
+                - string
+                - 'null'
+              url:
+                type:
+                - string
+                - 'null'
+            additionalProperties: true
+          description: Available related profiles.
+        currentCompanyDomain:
+          type:
+          - string
+          - 'null'
+          description: Current employer’s website domain, when available.
+        currentCompanyIndustry:
+          type:
+          - string
+          - 'null'
+          description: Current employer’s industry, when available.
+        currentCompanySize:
+          type:
+          - string
+          - 'null'
+          description: Current employer’s size band, when available.
+        currentCompanyHeadquarters:
+          type:
+          - string
+          - 'null'
+          description: Current employer’s headquarters, when available.
+        city:
+          type:
+          - string
+          - 'null'
+          description: City name, when available.
+        state:
+          type:
+          - string
+          - 'null'
+          description: State or region, when available.
+        country:
+          type:
+          - string
+          - 'null'
+          description: Country name, when available.
+        countryCode:
+          type:
+          - string
+          - 'null'
+          description: Two-letter country code, when available.
+        coverPhoto:
+          type:
+          - string
+          - 'null'
+          description: Alias of `bannerImage`.
+        followers:
+          type:
+          - integer
+          - 'null'
+          description: Alias of `followerCount`.
+        connections:
+          type:
+          - integer
+          - 'null'
+          description: Alias of `connectionsCount`.
+        headlineSource:
+          type:
+          - string
+          - 'null'
+          description: Source label for the returned headline.
+        currentCompanyId:
+          type:
+          - string
+          - 'null'
+          description: Numeric current-company ID as a string, when available.
+        currentSchoolId:
+          type:
+          - string
+          - 'null'
+          description: Numeric school ID as a string, when available.
+        workEmail:
+          type:
+          - string
+          - 'null'
+          description: Work email when available with `email=true`. Check `emailStatus` before use.
+        emailStatus:
+          type:
+          - string
+          - 'null'
+          enum:
+          - verified
+          - pattern-likely
+          - unknown
+          - null
+          description: Work-email status. `pattern-likely` is unverified and is not equivalent to `verified`.
+        emailConfidence:
+          type:
+          - number
+          - 'null'
+          description: Confidence value associated with the returned work email.
+        companyDomain:
+          type:
+          - string
+          - 'null'
+          description: Employer domain associated with the email lookup.
+        publicHeadline:
+          type:
+          - string
+          - 'null'
+          description: Optional additional headline field requested with `headline=true`.
+      additionalProperties: true
+      description: Public person data. Coverage varies; missing fields do not prove a person lacks the underlying information. Null when public profile data is unavailable (uncharged).
+    LinkedInJob:
+      type: object
+      additionalProperties: true
+      description: Optional public information when available. Missing values remain null; availability varies by record and operation.
+      properties:
+        company:
+          type:
+          - string
+          - 'null'
+          description: Published employer name; a LinkedIn company page is not required.
+        companyUrl:
+          type:
+          - string
+          - 'null'
+          description: Own published LinkedIn company link, when available.
+        companyLinkedInId:
+          type:
+          - string
+          - 'null'
+          description: Company ID from same-page metadata or the existing company dictionary when available.
+        jobPoster:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+          description: Published recruiter. Indexed results decode stored JSON and retain n/h/u compact aliases.
+          properties:
+            name:
+              type:
+              - string
+              - 'null'
+            headline:
+              type:
+              - string
+              - 'null'
+            url:
+              type:
+              - string
+              - 'null'
+            n:
+              type:
+              - string
+              - 'null'
+            h:
+              type:
+              - string
+              - 'null'
+            u:
+              type:
+              - string
+              - 'null'
+        hasRecruiter:
+          type: boolean
+          description: Whether the returned recruiter has a published name.
+        jobMetadataSource:
+          type: string
+          enum:
+          - linkedin_public_jobposting_jsonld
+          description: Optional public information when available. Missing values remain null; availability varies by record and operation.
+        datePosted:
+          type: string
+          description: Source-published posting date or timestamp. Not inferred from a relative age.
+        validThrough:
+          type: string
+          description: Source-published validity date or timestamp. It does not establish closure or jobState.
+        sourceJobIdentifier:
+          type: object
+          additionalProperties: true
+          description: Original JobPosting identifier. It can differ from LinkedIn jobPostingId and is not substituted for it.
+        jobLocation:
+          oneOf:
+          - type: object
+            additionalProperties: true
+          - type: array
+            items:
+              type: object
+              additionalProperties: true
+          description: Published structured location, including source coordinates/address when present. It does not replace the existing location fields.
+        educationRequirements:
+          oneOf:
+          - type: string
+          - type: object
+            additionalProperties: true
+          - type: array
+            items: {}
+          description: Original public JobPosting education requirements, when present.
+        experienceRequirements:
+          oneOf:
+          - type: string
+          - type: object
+            additionalProperties: true
+          - type: array
+            items: {}
+          description: Original public JobPosting experience requirements, when present.
     LinkedInResult:
       type: object
-      description: Polymorphic result. `type` echoes the request as linkedin-<type>; the populated data key depends on `type` (`people` for search).
+      description: Native LinkedIn response. type aliases are normalized in the returned type. Refresh fields are at the root; other operations use their respective data keys.
       properties:
         type:
           type: string
-          description: linkedin-profile, linkedin-company, linkedin-posts, linkedin-jobs, or linkedin-search.
+          description: Normalized operation name, such as linkedin-profile for person/profile and linkedin-search for people/search.
         url:
           type: string
-          description: The requested LinkedIn URL (profile, company, posts, and url-based jobs calls).
+          description: Requested URL and public identifier. When available, resolvedUrl gives the confirmed current destination. Renamed URLs are not automatically discovered.
         query:
           type: string
           description: The requested keywords (search and keyword-based jobs calls).
         profile:
-          type:
-          - object
-          - 'null'
-          description: 'type=profile: the person''s public profile. Null with a `note` if the profile is private or empty (uncharged). Includes `photo` (the member''s public profile photo URL, only ever present when the member''s own settings make it visible to anyone without login) and `photoState` (''public'' when a photo URL is returned; ''not_published'' when LinkedIn serves no member photo publicly, in which case `photo` is null).'
-          additionalProperties: true
+          $ref: '#/components/schemas/LinkedInProfile'
         company:
-          type:
-          - object
-          - 'null'
-          description: 'type=company: the public company page. Includes employees with employees=true.'
-          additionalProperties: true
+          $ref: '#/components/schemas/LinkedInCompany'
         posts:
           type: array
           description: 'type=posts: public posts. Includes comments with comments=true.'
@@ -249,11 +1730,12 @@ components:
             type: object
             additionalProperties: true
         jobs:
-          type: array
-          description: 'type=jobs: public job listings.'
-          items:
-            type: object
-            additionalProperties: true
+          description: 'type=jobs: an array for searches or a single record for a job URL.'
+          oneOf:
+          - type: array
+            items:
+              $ref: '#/components/schemas/LinkedInJob'
+          - $ref: '#/components/schemas/LinkedInJob'
         people:
           type: array
           description: 'type=search: matching people. With enrich=true each entry is the person''s full profile.'
@@ -262,13 +1744,171 @@ components:
             additionalProperties: true
         note:
           type: string
-          description: Present when a profile is private or empty.
+          description: Explanation when the requested public profile data is unavailable.
         creditsRemaining:
           type:
           - integer
           - 'null'
+          description: Request duration, numeric balance compatibility value and wallet billing where applicable. Use billing.chargedUsd and billing.remainingUsd for dollar amounts.
         tookMs:
           type: integer
+          description: Request duration, numeric balance compatibility value and wallet billing where applicable. Use billing.chargedUsd and billing.remainingUsd for dollar amounts.
+        accessible:
+          type: boolean
+          description: Whether public data was returned and the profile URL status. See the status table below.
+        profileState:
+          type: string
+          enum:
+          - accessible
+          - exists_not_public
+          - not_resolvable
+          - unknown
+          description: Whether public data was returned and the profile URL status. See the status table below.
+        resolvedUrl:
+          type:
+          - string
+          - 'null'
+          description: Confirmed current profile destination when available; requested URL fields stay unchanged. Does not automatically discover renamed profiles.
+        firstName:
+          type:
+          - string
+          - 'null'
+          description: Published first and last name.
+        lastName:
+          type:
+          - string
+          - 'null'
+          description: Published first and last name.
+        headline:
+          type:
+          - string
+          - 'null'
+          description: 'Headline, supported current title and provenance labels. titleSource: "headline" marks a title derived from headline wording; "linkedin" marks an explicit role title. A headline is not necessarily a job title.'
+        headlineSource:
+          type:
+          - string
+          - 'null'
+          description: 'Headline, supported current title and provenance labels. titleSource: "headline" marks a title derived from headline wording; "linkedin" marks an explicit role title. A headline is not necessarily a job title.'
+        currentTitle:
+          type:
+          - string
+          - 'null'
+          description: 'Headline, supported current title and provenance labels. titleSource: "headline" marks a title derived from headline wording; "linkedin" marks an explicit role title. A headline is not necessarily a job title.'
+        titleSource:
+          type:
+          - string
+          - 'null'
+          description: 'Headline, supported current title and provenance labels. titleSource: "headline" marks a title derived from headline wording; "linkedin" marks an explicit role title. A headline is not necessarily a job title.'
+        publicIdentifier:
+          type:
+          - string
+          - 'null'
+          description: Requested URL and public identifier. When available, resolvedUrl gives the confirmed current destination. Renamed URLs are not automatically discovered.
+        companyState:
+          type:
+          - string
+          - 'null'
+          description: 'Employer availability: public, restricted, not_published or unknown. May be null for an unavailable profile. Missing data does not prove a job change.'
+        photoState:
+          type:
+          - string
+          - 'null'
+          description: Public photo URL and its availability label. Null means no usable value was returned.
+        memberIdentifier:
+          type:
+          - string
+          - 'null'
+          description: Optional numeric member ID, returned as a string with member=true when available. This option can increase response time.
+        currentCompany:
+          type:
+          - object
+          - 'null'
+          properties:
+            name:
+              type:
+              - string
+              - 'null'
+            slug:
+              type:
+              - string
+              - 'null'
+            linkedInUrl:
+              type:
+              - string
+              - 'null'
+            linkedInId:
+              type:
+              - string
+              - 'null'
+          additionalProperties: true
+          description: Each object can include name, slug, linkedInUrl and linkedInId. Numeric IDs are returned as strings. Unavailable objects or unmatched IDs can be null.
+        currentSchool:
+          type:
+          - object
+          - 'null'
+          properties:
+            name:
+              type:
+              - string
+              - 'null'
+            slug:
+              type:
+              - string
+              - 'null'
+            linkedInUrl:
+              type:
+              - string
+              - 'null'
+            linkedInId:
+              type:
+              - string
+              - 'null'
+          additionalProperties: true
+          description: Each object can include name, slug, linkedInUrl and linkedInId. Numeric IDs are returned as strings. Unavailable objects or unmatched IDs can be null.
+        memorialized:
+          type:
+          - boolean
+          - 'null'
+          enum:
+          - true
+          - null
+          description: True only when public memorialization is established; otherwise null. Null does not establish account activity or whether the person is alive. It does not change profileState or distinguish closed and hibernated accounts.
+        memorializedSource:
+          type:
+          - string
+          - 'null'
+          enum:
+          - linkedin_public_memorialized_banner
+          - null
+          description: memorialized is true only when a public memorialization marker is established; otherwise null. Null does not establish whether the account is active or the person is alive.
+        billing:
+          $ref: '#/components/schemas/WalletBilling'
+          description: Request duration, numeric balance compatibility value and wallet billing where applicable. Use billing.chargedUsd and billing.remainingUsd for dollar amounts.
+        photo:
+          type:
+          - string
+          - 'null'
+          description: Public photo URL and its availability label. Null means no usable value was returned.
+        source:
+          type:
+          - string
+          - 'null'
+          description: Search response metadata when available. A reported total may be capped.
+        returned:
+          type:
+          - integer
+          - 'null'
+          description: Search response metadata when available. A reported total may be capped.
+        totalAvailable:
+          type:
+          - integer
+          - 'null'
+          description: Search response metadata when available. A reported total may be capped.
+        totalCapped:
+          type:
+          - boolean
+          - 'null'
+          description: Search response metadata when available. A reported total may be capped.
   securitySchemes:
     ApiKeyAuth:
       type: apiKey

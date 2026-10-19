@@ -1,0 +1,12 @@
+{
+ "url": "https://crustapi.com/openapi.json",
+ "final": "https://crustapi.com/openapi.json",
+ "status": 200,
+ "content_type": "application/json; charset=utf-8",
+ "bytes": 213439,
+ "sha256": "1945c37cac697c2ce0b1d3226d4f4847203a8d93b68b85034380043004f3e607",
+ "fetched_at": "2026-10-19",
+ "fetched_by": "APIEvangelist-Harvest/1.0 (+https://apievangelist.com)",
+ "match": "byte-identical",
+ "note": "re-archived: the provider's current document replaced a stale archive (roadmap#793); the old files are in openapi/_superseded/2026-10-19-stale"
+}

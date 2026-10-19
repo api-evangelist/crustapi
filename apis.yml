@@ -66,15 +66,62 @@ apis:
     url: https://crustapi.com/privacy
   - type: GitHubOrganization
     url: https://github.com/CrustAPI
-- aid: crustapi:crustapi-search-api
-  name: CrustAPI Search API
-  description: The Search API from CrustAPI — 1 operation(s) for search.
+- aid: crustapi:crustapi-account-api
+  name: CrustAPI Account API
+  description: Read your available balance.
   humanURL: https://crustapi.com/docs
   tags:
-  - Search
+  - Account
   properties:
   - type: OpenAPI
-    url: openapi/crustapi-search-api-openapi.yml
+    url: openapi/crustapi-account-api-openapi.yml
+  - type: Documentation
+    url: https://crustapi.com/docs
+  - type: LLMsTxt
+    url: https://crustapi.com/llms.txt
+  - type: ToolCrosswalk
+    url: mcp/crustapi-tool-crosswalk.yml
+  - type: Webhooks
+    url: asyncapi/crustapi-webhooks.yml
+  - type: RateLimits
+    url: rate-limits/crustapi-rate-limits.yml
+  - type: Plans
+    url: plans/crustapi-plans-pricing.yml
+  - type: Conventions
+    url: conventions/crustapi-conventions.yml
+  - type: ErrorCatalog
+    url: errors/crustapi-problem-types.yml
+  - type: Lifecycle
+    url: lifecycle/crustapi-lifecycle.yml
+  - type: StatusPage
+    url: https://status.crustapi.com/
+  - type: DataModel
+    url: data-model/crustapi-data-model.yml
+  - type: Sandbox
+    url: sandbox/crustapi-sandbox.yml
+  - type: Conformance
+    url: conformance/crustapi-conformance.yml
+  - type: CLI
+    url: cli/crustapi-cli.yml
+  - type: Pricing
+    url: https://crustapi.com/pricing
+  - type: SignUp
+    url: https://crustapi.com/signup
+  - type: TermsOfService
+    url: https://crustapi.com/terms
+  - type: PrivacyPolicy
+    url: https://crustapi.com/privacy
+  - type: GitHubOrganization
+    url: https://github.com/CrustAPI
+- aid: crustapi:crustapi-google-api
+  name: CrustAPI Google API
+  description: Google Maps, Search and other supported types.
+  humanURL: https://crustapi.com/docs
+  tags:
+  - Google
+  properties:
+  - type: OpenAPI
+    url: openapi/crustapi-google-api-openapi.yml
   - type: Documentation
     url: https://crustapi.com/docs
   - type: LLMsTxt
@@ -115,11 +162,9 @@ apis:
     url: https://github.com/CrustAPI
 - aid: crustapi:crustapi-linked-in-api
   name: CrustAPI Linked In API
-  description: The Linked In API from CrustAPI — 2 operation(s) for linked in.
+  description: People Refresh and public LinkedIn data.
   humanURL: https://crustapi.com/docs
   tags:
-  - LinkedIn
-  tags_raw:
   - Linked In
   properties:
   - type: OpenAPI

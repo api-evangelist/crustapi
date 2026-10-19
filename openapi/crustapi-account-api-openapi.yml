@@ -1,0 +1,51 @@
+openapi: 3.2.0
+info:
+  title: Crust Account API
+  version: 2.1.0
+  description: People Refresh, public LinkedIn profiles, companies, posts, jobs and people search, plus Google Maps and Search. LinkedIn data uses public, logged-out sources. Returned fields vary by record. Wallet accounts use prepaid USD funds at each deposit’s saved endpoint rates. Eligible accounts receive $6 of free usage monthly; paid funds never expire. Empty and failed results are uncharged. Use explicit USD billing fields for accounting. See https://crustapi.com/docs and https://crustapi.com/pricing.
+servers:
+- url: https://crustapi.com
+security:
+- ApiKeyAuth: []
+tags:
+- name: Account
+  description: Read your available balance.
+paths:
+  /v1/balance:
+    get:
+      tags:
+      - Account
+      operationId: getBalance
+      summary: Read available funds and saved prices
+      description: Non-billable. Wallet accounts return explicit USD values under wallet. Numeric credits is a compatibility count, not dollars. Legacy accounts retain their credit response.
+      responses:
+        '200':
+          description: Account balance.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  credits:
+                    type: number
+                  currency:
+                    type: string
+                    enum:
+                    - USD
+                    - credits
+                  wallet:
+                    type: object
+                    properties:
+                      availableUsd:
+                        type: string
+                    additionalProperties: true
+                  note:
+                    type: string
+        '401':
+          description: Invalid or missing API key.
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key

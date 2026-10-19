@@ -1,8 +1,8 @@
 openapi: 3.2.0
 info:
   title: Crust Demo API
-  version: 2.0.0
-  description: Self-scraped Google and public LinkedIn data as a clean JSON API.
+  version: 2.1.0
+  description: People Refresh, public LinkedIn profiles, companies, posts, jobs and people search, plus Google Maps and Search. LinkedIn data uses public, logged-out sources. Returned fields vary by record. Wallet accounts use prepaid USD funds at each deposit’s saved endpoint rates. Eligible accounts receive $6 of free usage monthly; paid funds never expire. Empty and failed results are uncharged. Use explicit USD billing fields for accounting. See https://crustapi.com/docs and https://crustapi.com/pricing.
 servers:
 - url: https://crustapi.com
 security:
@@ -44,232 +44,44 @@ paths:
       - Demo
 components:
   schemas:
-    NewsItem:
+    WalletBilling:
       type: object
+      description: Optional USD accounting fields for enrolled wallet accounts. Legacy accounts retain numeric credit fields. Monetary values are exact decimal strings.
       properties:
-        title:
+        model:
           type: string
-        link:
+          enum:
+          - wallet
+        currency:
           type: string
-        snippet:
-          type:
-          - string
-          - 'null'
-        date:
-          type:
-          - string
-          - 'null'
-        source:
-          type:
-          - string
-          - 'null'
-        imageUrl:
-          type:
-          - string
-          - 'null'
-        position:
+          enum:
+          - USD
+        chargedUsd:
+          type: string
+          example: '0.001'
+          description: Actual USD usage charge for this request.
+        remainingUsd:
+          type: string
+          example: '5.999'
+          description: Available USD funds after settlement.
+        units:
           type: integer
-    ImageItem:
-      type: object
-      properties:
-        title:
+          description: Successful billing units, not dollars.
+        product:
           type: string
-        imageUrl:
-          type: string
-        imageWidth:
-          type:
-          - integer
-          - 'null'
-        imageHeight:
-          type:
-          - integer
-          - 'null'
-        thumbnailUrl:
-          type: string
-        thumbnailWidth:
-          type:
-          - integer
-          - 'null'
-        thumbnailHeight:
-          type:
-          - integer
-          - 'null'
-        source:
+          enum:
+          - googleSearch
+          - googleMaps
+          - linkedinRead
+          - linkedinSearch
+        debitId:
           type:
           - string
           - 'null'
-          description: The publisher's display name as Google shows it.
-        domain:
+        reason:
           type:
           - string
           - 'null'
-        link:
-          type:
-          - string
-          - 'null'
-        googleUrl:
-          type:
-          - string
-          - 'null'
-        position:
-          type: integer
-        creator:
-          type: string
-          description: Image creator from IPTC metadata (sparse — only when Google carries it).
-        copyright:
-          type: string
-          description: Copyright notice from IPTC metadata (sparse).
-    ShoppingItem:
-      type: object
-      properties:
-        title:
-          type: string
-        source:
-          type:
-          - string
-          - 'null'
-        condition:
-          type:
-          - string
-          - 'null'
-        link:
-          type:
-          - string
-          - 'null'
-          description: Google product page URL (always present since 2026-08).
-        price:
-          type:
-          - string
-          - 'null'
-        imageUrl:
-          type:
-          - string
-          - 'null'
-          description: 'Product thumbnail: a gstatic URL, or an inline data:image URI for some top-of-page rows.'
-        rating:
-          type:
-          - number
-          - 'null'
-        ratingCount:
-          type:
-          - integer
-          - 'null'
-        productId:
-          type:
-          - string
-          - 'null'
-        position:
-          type: integer
-    Review:
-      type: object
-      properties:
-        rating:
-          type: integer
-        date:
-          type:
-          - string
-          - 'null'
-        isoDate:
-          type:
-          - string
-          - 'null'
-        snippet:
-          type:
-          - string
-          - 'null'
-        likes:
-          type: integer
-          description: Total reactions on the review (sum across reaction types).
-        user:
-          type: object
-          properties:
-            name:
-              type:
-              - string
-              - 'null'
-            thumbnail:
-              type:
-              - string
-              - 'null'
-            link:
-              type:
-              - string
-              - 'null'
-            reviews:
-              type:
-              - integer
-              - 'null'
-            photos:
-              type:
-              - integer
-              - 'null'
-        media:
-          type: array
-          items:
-            type: object
-            properties:
-              type:
-                type: string
-              imageUrl:
-                type: string
-              caption:
-                type: string
-        link:
-          type:
-          - string
-          - 'null'
-        id:
-          type:
-          - string
-          - 'null'
-        response:
-          type:
-          - object
-          - 'null'
-          description: Owner reply, when present.
-          properties:
-            date:
-              type: string
-            snippet:
-              type: string
-    Suggestion:
-      type: object
-      properties:
-        value:
-          type: string
-    VideoItem:
-      type: object
-      properties:
-        title:
-          type: string
-        link:
-          type: string
-        snippet:
-          type:
-          - string
-          - 'null'
-        imageUrl:
-          type:
-          - string
-          - 'null'
-        duration:
-          type:
-          - string
-          - 'null'
-        source:
-          type:
-          - string
-          - 'null'
-        channel:
-          type:
-          - string
-          - 'null'
-        date:
-          type:
-          - string
-          - 'null'
-        position:
-          type: integer
     SearchResult:
       type: object
       description: Polymorphic result. `searchParameters` echoes your request; the populated array key depends on `type`.
@@ -286,7 +98,9 @@ components:
           type: array
           description: maps, places
           items:
-            $ref: '#/components/schemas/Place'
+            anyOf:
+            - $ref: '#/components/schemas/MapsPlace'
+            - $ref: '#/components/schemas/Place'
         news:
           type: array
           items:
@@ -330,7 +144,275 @@ components:
           type:
           - integer
           - 'null'
+          description: Numeric compatibility count of remaining affordable billing units for wallet accounts; legacy accounts return remaining credits. This is not a dollar amount. Use billing.remainingUsd or wallet.availableUsd for USD accounting.
         tookMs:
+          type: integer
+        billing:
+          $ref: '#/components/schemas/WalletBilling'
+        query:
+          type:
+          - string
+          - 'null'
+          description: Maps search query.
+        count:
+          type:
+          - integer
+          - 'null'
+          description: Number of returned Maps records.
+        ll:
+          type:
+          - string
+          - 'null'
+          description: Maps location parameter when returned.
+        cached:
+          type:
+          - boolean
+          - 'null'
+          description: True when an identical Google search result is reused.
+        cacheAgeSeconds:
+          type:
+          - number
+          - 'null'
+          description: Age in seconds of a reused Google result.
+    MapsPlace:
+      type:
+      - object
+      - 'null'
+      properties:
+        position:
+          type:
+          - integer
+          - 'null'
+          description: Business position in the returned results.
+        title:
+          type:
+          - string
+          - 'null'
+          description: Business name.
+        placeId:
+          type:
+          - string
+          - 'null'
+          description: Google place identifier.
+        fid:
+          type:
+          - string
+          - 'null'
+          description: Google feature identifier.
+        cid:
+          type:
+          - string
+          - 'null'
+          description: Google customer identifier for the listing.
+        url:
+          type:
+          - string
+          - 'null'
+          description: Google Maps link for the listing.
+        address:
+          type:
+          - string
+          - 'null'
+          description: Formatted business address.
+        street:
+          type:
+          - string
+          - 'null'
+          description: Street address, when available.
+        city:
+          type:
+          - string
+          - 'null'
+          description: City name, when available.
+        state:
+          type:
+          - string
+          - 'null'
+          description: State or region, when available.
+        postalCode:
+          type:
+          - string
+          - 'null'
+          description: Postal or ZIP code, when available.
+        countryCode:
+          type:
+          - string
+          - 'null'
+          description: Two-letter country code, when available.
+        location:
+          type:
+          - object
+          - 'null'
+          description: Coordinates as an object containing `lat` and `lng`.
+          properties:
+            lat:
+              type: number
+            lng:
+              type: number
+        phone:
+          type:
+          - string
+          - 'null'
+          description: Published phone number in local format.
+        phoneUnformatted:
+          type:
+          - string
+          - 'null'
+          description: Published phone number with country code, when available.
+        website:
+          type:
+          - string
+          - 'null'
+          description: Published website URL, when available.
+        categoryName:
+          type:
+          - string
+          - 'null'
+          description: Primary business category.
+        categories:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          description: Available business categories.
+        totalScore:
+          type:
+          - number
+          - 'null'
+          description: Average star rating, when available.
+        reviewsCount:
+          type:
+          - integer
+          - 'null'
+          description: Total review count, when available.
+        priceLevel:
+          type:
+          - string
+          - 'null'
+          description: Published price range or level, when available.
+        reviewsDistribution:
+          type:
+          - object
+          - 'null'
+          description: Counts from `oneStar` through `fiveStar` with `stars=true` (alias `details=true`), when available. This option can increase response time.
+          properties:
+            oneStar:
+              type:
+              - integer
+              - 'null'
+              minimum: 0
+            twoStar:
+              type:
+              - integer
+              - 'null'
+              minimum: 0
+            threeStar:
+              type:
+              - integer
+              - 'null'
+              minimum: 0
+            fourStar:
+              type:
+              - integer
+              - 'null'
+              minimum: 0
+            fiveStar:
+              type:
+              - integer
+              - 'null'
+              minimum: 0
+        description:
+          type:
+          - string
+          - 'null'
+          description: Published listing description, when available.
+        openingHours:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            type: string
+          description: Published opening hours by day.
+        permanentlyClosed:
+          type:
+          - boolean
+          - 'null'
+          description: Permanent-closure flag when returned.
+        mainImage:
+          type:
+          - string
+          - 'null'
+          description: Lead listing image URL, when available.
+        thumbnailUrl:
+          type:
+          - string
+          - 'null'
+          description: Listing thumbnail URL, when available.
+        bookingLinks:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          description: Available booking links.
+        attributes:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          description: Available business attributes.
+        scrapedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Collection timestamp for the listing.
+      additionalProperties: true
+      description: A type=maps business record. Fields may be null or empty when unavailable. type=places uses the separate lean Place schema.
+    ShoppingItem:
+      type: object
+      properties:
+        title:
+          type: string
+        source:
+          type:
+          - string
+          - 'null'
+        condition:
+          type:
+          - string
+          - 'null'
+        link:
+          type:
+          - string
+          - 'null'
+          description: Google product page URL (always present since 2026-08).
+        price:
+          type:
+          - string
+          - 'null'
+        imageUrl:
+          type:
+          - string
+          - 'null'
+          description: 'Product thumbnail: a gstatic URL, or an inline data:image URI for some top-of-page rows.'
+        rating:
+          type:
+          - number
+          - 'null'
+        ratingCount:
+          type:
+          - integer
+          - 'null'
+        productId:
+          type:
+          - string
+          - 'null'
+        position:
           type: integer
     OrganicResult:
       type: object
@@ -405,6 +487,191 @@ components:
           - string
           - 'null'
           description: 'Scholar: full-text link when the side resource is an HTML copy (pdfUrl is null then).'
+    Review:
+      type: object
+      properties:
+        rating:
+          type: integer
+        date:
+          type:
+          - string
+          - 'null'
+        isoDate:
+          type:
+          - string
+          - 'null'
+        snippet:
+          type:
+          - string
+          - 'null'
+        likes:
+          type: integer
+          description: Total reactions on the review (sum across reaction types).
+        user:
+          type: object
+          properties:
+            name:
+              type:
+              - string
+              - 'null'
+            thumbnail:
+              type:
+              - string
+              - 'null'
+            link:
+              type:
+              - string
+              - 'null'
+            reviews:
+              type:
+              - integer
+              - 'null'
+            photos:
+              type:
+              - integer
+              - 'null'
+        media:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              imageUrl:
+                type: string
+              caption:
+                type: string
+        link:
+          type:
+          - string
+          - 'null'
+        id:
+          type:
+          - string
+          - 'null'
+        response:
+          type:
+          - object
+          - 'null'
+          description: Owner reply, when present.
+          properties:
+            date:
+              type: string
+            snippet:
+              type: string
+    NewsItem:
+      type: object
+      properties:
+        title:
+          type: string
+        link:
+          type: string
+        snippet:
+          type:
+          - string
+          - 'null'
+        date:
+          type:
+          - string
+          - 'null'
+        source:
+          type:
+          - string
+          - 'null'
+        imageUrl:
+          type:
+          - string
+          - 'null'
+        position:
+          type: integer
+    Suggestion:
+      type: object
+      properties:
+        value:
+          type: string
+    VideoItem:
+      type: object
+      properties:
+        title:
+          type: string
+        link:
+          type: string
+        snippet:
+          type:
+          - string
+          - 'null'
+        imageUrl:
+          type:
+          - string
+          - 'null'
+        duration:
+          type:
+          - string
+          - 'null'
+        source:
+          type:
+          - string
+          - 'null'
+        channel:
+          type:
+          - string
+          - 'null'
+        date:
+          type:
+          - string
+          - 'null'
+        position:
+          type: integer
+    ImageItem:
+      type: object
+      properties:
+        title:
+          type: string
+        imageUrl:
+          type: string
+        imageWidth:
+          type:
+          - integer
+          - 'null'
+        imageHeight:
+          type:
+          - integer
+          - 'null'
+        thumbnailUrl:
+          type: string
+        thumbnailWidth:
+          type:
+          - integer
+          - 'null'
+        thumbnailHeight:
+          type:
+          - integer
+          - 'null'
+        source:
+          type:
+          - string
+          - 'null'
+          description: The publisher's display name as Google shows it.
+        domain:
+          type:
+          - string
+          - 'null'
+        link:
+          type:
+          - string
+          - 'null'
+        googleUrl:
+          type:
+          - string
+          - 'null'
+        position:
+          type: integer
+        creator:
+          type: string
+          description: Image creator from IPTC metadata (sparse , only when Google carries it).
+        copyright:
+          type: string
+          description: Copyright notice from IPTC metadata (sparse).
     Place:
       type: object
       description: A place. type=places returns the lean serper-parity subset; type=maps returns this full shape (contact details, categories, opening hours, attributes and photos on top).
