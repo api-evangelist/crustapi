@@ -1,4 +1,4 @@
-# crustapi
+# CrustAPI
 
 <!-- API-EVANGELIST-PROVENANCE:BEGIN -->
 > ### About this repository
@@ -65,3 +65,119 @@
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
 Hosted API delivering structured Google (Search/Maps/etc.) and public LinkedIn data as JSON for developers, data teams, and AI agents. Pay-per-successful-result billing with an OpenAPI spec, an llms.txt, an x402 agent-payment endpoint, and a local MCP server.
+
+**Areas:** Search · Google Maps · LinkedIn · SERP / Web Scraping · Business & Lead Data · People / Recruiting Data · Data Enrichment · AI Agents / MCP · RAG · Data
+
+## CrustAPI on APIs.io
+
+Everything profiled for CrustAPI is published on APIs.io rather than in this repository. Start at the provider page — **[apis.io/providers/crustapi/](https://apis.io/providers/crustapi/)** — or go straight to one of the APIs or properties below.
+
+### APIs (3)
+
+- [CrustAPI Demo API](https://apis.io/apis/crustapi/crustapi-demo-api/) — The Demo API from CrustAPI — 1 operation(s) for demo.
+- [CrustAPI Search API](https://apis.io/apis/crustapi/crustapi-search-api/) — The Search API from CrustAPI — 1 operation(s) for search.
+- [CrustAPI Linked In API](https://apis.io/apis/crustapi/crustapi-linked-in-api/) — The Linked In API from CrustAPI — 2 operation(s) for linked in.
+
+### Published properties
+
+Each property below is a page on APIs.io carrying the machine-readable artifact and what it says.
+
+#### AsyncAPI (1)
+
+Event-driven and webhook contracts.
+
+- [Crustapi Webhooks](https://apis.io/asyncapis/crustapi/crustapi-webhooks/)
+
+#### MCP servers (1)
+
+Model Context Protocol servers that expose the API to agents.
+
+- [crustapi](https://apis.io/servers/crustapi/crustapi/)
+
+#### Overlays (1)
+
+OpenAPI overlays, including conversational phrasing for each operation.
+
+- [Crustapi Openapi Overlay](https://apis.io/overlays/crustapi/crustapi-openapi-overlay/)
+
+#### Security (3)
+
+Authentication, trust centre, and vulnerability disclosure.
+
+- [Crustapi Authentication](https://apis.io/security/crustapi/crustapi-authentication/)
+- [Crustapi Domain Security](https://apis.io/security/crustapi/crustapi-domain-security/)
+- [Crustapi Trust Center](https://apis.io/security/crustapi/crustapi-trust-center/)
+
+#### Plans and pricing (1)
+
+Published plans, tiers and prices.
+
+- [Crustapi Plans Pricing](https://apis.io/plans/crustapi/crustapi-plans-pricing/)
+
+#### Rate limits (1)
+
+Published request limits.
+
+- [Crustapi Rate Limits](https://apis.io/rate-limits/crustapi/crustapi-rate-limits/)
+
+## Where to find this API
+
+Links to the company's own pages. This repository publishes no copy of their specifications — the canonical document is theirs and lives at the URLs below.
+
+- [Website](https://crustapi.com)
+- [Pricing](https://crustapi.com/pricing)
+
+## API Evangelist rating
+
+**Kin Score 55.2** — strong · rubric 0.25.0 · scored 2026-10-23
+
+| Facet | Score |
+|---|---|
+| Discoverability | 58.3 |
+| Contract quality | 56.1 |
+| Contract governance | 18.2 |
+| Operational transparency | 50.0 |
+| Developer ergonomics | 44.6 |
+| Access clarity | 81.6 |
+
+**Agent readiness 28.9** — agent-ready
+
+| Agent-readiness dimension | Result |
+|---|---|
+| Spec Presence | yes |
+| Agentic Access | — |
+| Reversibility Documented | — |
+| MCP Server | documented (partial credit) |
+| Auth Clarity | bearer (partial credit) |
+| Idempotency | — |
+| Error Semantics | derived (partial credit) |
+| OpenAPI Examples | — |
+| Rate Limit Signal | documented (partial credit) |
+| Event Surface Described | yes |
+| Agent Skills | derived (partial credit) |
+| Well Known Catalog | — |
+| Consent Identity | — |
+| Agent Card | — |
+| Dry Run Mode | — |
+| Delegated Identity | — |
+| Protected Resource Metadata | — |
+| Dynamic Client Registration | — |
+| Agentic Commerce | — |
+| Pagination Ratio | na |
+| Operation Distinctiveness | distinct |
+
+**Regulatory alignment 29.4** — Horizontal (data, software, accessibility, platform)
+
+The rubric is published at [github.com/api-evangelist/kin-score](https://github.com/api-evangelist/kin-score). The per-check breakdown behind these numbers — which checks were earned, partial or missed — along with score history and how this provider compares to its peers, is available at [apis.io/providers/crustapi/](https://apis.io/providers/crustapi/).
+
+## How this profile is made
+
+API Evangelist profiles a company's public API surface the way a developer would find it: the website, developer portal and documentation, the specifications it publishes, its public repositories, and its pricing, status and changelog pages. From that it derives the properties above — contracts split per API, workflows, schemas, collections, governance rules, plans and rate limits — and scores them against the published [Kin Score rubric](https://github.com/api-evangelist/kin-score).
+
+The artifacts are published on [APIs.io](https://apis.io), not in this repository. This repository is the public record for CrustAPI: the place to say something is wrong, missing or out of date, and to ask for a re-score or a removal.
+
+## Open an issue
+
+- **Something about this listing** — a wrong description, a missing API, a stale artifact or a question about the rating: [open an issue on this repository](https://github.com/api-evangelist/crustapi/issues/new).
+- **A new API, or one that is not in the catalog yet** — [submit it on APIs.io](https://apis.io/add/).
+- **Anything else** — [the APIs.io inbox](https://github.com/api-search/inbox/issues/new) or [info@apievangelist.com](mailto:info@apievangelist.com).
